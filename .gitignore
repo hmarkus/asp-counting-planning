@@ -2,3 +2,4 @@
 *.model
 *.theory
 src/delete_free_asp_planner.egg-info/
+experiments/*/data/
