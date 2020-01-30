@@ -64,9 +64,7 @@ if __name__ == '__main__':
 
     with open(args.model_output, 'w+t') as output:
         command = [gringo, theory_output]
-        print (command)
         retcode = execute(command, stdout=output)
-        print (retcode)
         if retcode == 0:
             print ("Gringo finished correctly: 1")
         else:
