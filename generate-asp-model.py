@@ -58,13 +58,15 @@ if __name__ == '__main__':
     with open(theory_output, 'w+t') as output:
         _ = [print(str(r), file=output) for r in lp.rules]
         print("ASP model being copied to %s" % theory_output)
-        gringo = shutil.which("gringo")
-        if gringo is None:
-            raise CommandNotFoundError("gringo")
+    gringo = shutil.which("gringo")
+    if gringo is None:
+        raise CommandNotFoundError("gringo")
 
+    with open(args.model_output, 'w+t') as output:
         command = [gringo, theory_output]
-
-        retcode = execute(command, stdout=args.model_output)
+        print (command)
+        retcode = execute(command, stdout=output)
+        print (retcode)
         if retcode == 0:
             print ("Gringo finished correctly: 1")
         else:
