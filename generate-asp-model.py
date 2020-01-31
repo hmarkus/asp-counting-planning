@@ -47,7 +47,6 @@ if __name__ == '__main__':
         sys.exit()
 
     theory_output = args.theory_output
-    start_time = time.time()
 
     problem = FstripsReader(
         raise_on_error=True,
@@ -63,15 +62,16 @@ if __name__ == '__main__':
         raise CommandNotFoundError("gringo")
 
     with open(args.model_output, 'w+t') as output:
+        start_time = time.time()
         command = [gringo, theory_output]
         retcode = execute(command, stdout=output)
         if retcode == 0:
             print ("Gringo finished correctly: 1")
+            print("Total time (in seconds): %0.5fs" % (time.time() - start_time))
         else:
             print ("Gringo finished correctly: 0")
 
 
-    print("Total time (in seconds): %0.5fs" % (time.time() - start_time))
 
     if args.remove_files:
         silentremove(args.model_output)
