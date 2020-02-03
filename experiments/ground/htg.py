@@ -90,9 +90,16 @@ exp.add_step('start', exp.start_runs)
 # writes them to *-eval/properties.
 exp.add_fetcher(name='fetch')
 
+def remove_timeouts(run):
+    if 'total_time' in run:
+        if run['total_time'] > 1780:
+            run['ground'] = 0
+            run['total_time'] = None
+    return run
+
 # Make a report.
 exp.add_report(
-    BaseReport(attributes=ATTRIBUTES),
+    BaseReport(attributes=ATTRIBUTES, filter=remove_timeouts),
     outfile='report.html')
 
 # Parse the commandline and run the specified steps.
