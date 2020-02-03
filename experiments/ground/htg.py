@@ -71,8 +71,8 @@ for config in CONFIGS:
         run.add_resource('problem', task.problem_file, symlink=True)
         run.add_command('run-search',
                         [RUN_SCRIPT_DIR+'/generate-asp-model.py', '-i', task.problem_file,
-                         '-m', '{}-{}-{}-{}.model'.format(config.name, task.domain, task.problem, config.name),
-                         '-t', '{}-{}-{}-{}.theory'.format(config.name, task.domain, task.problem, config.name)],
+                         '-m', '{}-{}-{}.model'.format(config.name, task.domain, task.problem),
+                         '-t', '{}-{}-{}.theory'.format(config.name, task.domain, task.problem)] + config.arguments,
                         time_limit=TIME_LIMIT,
                         memory_limit=MEMORY_LIMIT)
         run.set_property('domain', task.domain)
