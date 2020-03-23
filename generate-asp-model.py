@@ -86,6 +86,7 @@ if __name__ == '__main__':
         print("ASP model being copied to %s" % theory_output)
     grounder = select_grounder(args.clingo)
 
+    extra_options = []
     if args.clingo:
         extra_options = ['-V2', '--quiet']
     with open(args.model_output, 'w+t') as output:
