@@ -13,6 +13,7 @@ from tarski.io import find_domain_filename
 from tarski.reachability import create_reachability_lp, run_clingo
 from tarski.theories import Theory
 from tarski.utils.command import silentremove, execute
+from tarski.syntax.transform.universal_effect_elimination import expand_universal_effect, compile_universal_effects_away
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate models.')
@@ -25,6 +26,7 @@ def parse_arguments():
     parser.add_argument('-t', '--theory-output', default='output.theory', help="Theory output file.")
     parser.add_argument('--ground-actions', action='store_true', help="Ground actions or not.")
     parser.add_argument('-r', '--remove-files', action='store_true', help="Remove model and theory files.")
+    parser.add_argument('--clingo', action='store_true', help="Use clingo instead of gringo to avoid I/O overhead.")
 
     args = parser.parse_args()
     if args.domain is None:
@@ -33,6 +35,30 @@ def parse_arguments():
             raise RuntimeError(f'Could not find domain filename that matches instance file "{args.domain}"')
 
     return args
+
+
+def select_grounder(use_clingo):
+    grounder_name = "gringo"
+    if use_clingo:
+        grounder_name = "clingo"
+    grounder = shutil.which(grounder_name)
+    if grounder is None:
+        raise CommandNotFoundError("gringo")
+    return grounder
+
+
+def compute_time(start, use_clingo, model):
+    if  use_clingo:
+        # Clingo -> "Reading : Xs"
+        with open(model, "r") as mf:
+            for line in mf:
+                if line.startswith("Reading      :"):
+                    return (float(line.split()[2]))
+    else:
+        # Gringo -> manual computation
+        return (time.time() - start_time)
+
+
 
 if __name__ == '__main__':
     args = parse_arguments()
@@ -52,22 +78,24 @@ if __name__ == '__main__':
         raise_on_error=True,
         theories=[Theory.EQUALITY],
         strict_with_requirements=False).read_problem(domain_file, instance_file)
+    problem = compile_universal_effects_away(problem)
 
     lp, tr = create_reachability_lp(problem, args.ground_actions)
     with open(theory_output, 'w+t') as output:
         _ = [print(str(r), file=output) for r in lp.rules]
         print("ASP model being copied to %s" % theory_output)
-    gringo = shutil.which("gringo")
-    if gringo is None:
-        raise CommandNotFoundError("gringo")
+    grounder = select_grounder(args.clingo)
 
+    if args.clingo:
+        extra_options = ['-V2', '--quiet']
     with open(args.model_output, 'w+t') as output:
         start_time = time.time()
-        command = [gringo, theory_output]
+        command = [grounder, theory_output] + extra_options
         retcode = execute(command, stdout=output)
-        if retcode == 0:
+        if retcode == 0 or retcode == 30:
+            # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
-            print("Total time (in seconds): %0.5fs" % (time.time() - start_time))
+            print("Total time (in seconds): %0.5fs" % compute_time(start_time, args.clingo, args.model_output))
         else:
             print ("Gringo finished correctly: 0")
 
