@@ -1,5 +1,5 @@
 *~
 *.model
 *.theory
-src/delete_free_asp_planner.egg-info/
+src/asp_grounding.egg-info/
 experiments/*/data/
