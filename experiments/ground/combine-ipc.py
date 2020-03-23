@@ -24,8 +24,6 @@ def remove_timeouts(run):
         if run['total_time'] > 1780:
             run['ground'] = 0
             run['total_time'] = None
-    if 'total_time' not in run:
-        run['total_time'] = 1800
     return run
 
 def create_same_attr(run):
@@ -42,9 +40,9 @@ def get_valid(run):
         return False
 
 
-exp = Experiment('/home/blaas/projects/asp-grounding-planning/experiments/ground/data/combined-eval')
-exp.add_fetcher('/home/blaas/projects/asp-grounding-planning/experiments/ground/data/ipc-eval')
-exp.add_fetcher('/home/blaas/projects/grounding/ipc')
+exp = Experiment('/home/blaas/work/projects/asp-grounding-planning/experiments/ground/data/combined-eval')
+exp.add_fetcher('/home/blaas/work/projects/asp-grounding-planning/experiments/ground/data/ipc-eval')
+exp.add_fetcher('/home/blaas/work/projects/grounding/ipc')
 exp.add_report(BaseReport(attributes=['total_time'],
                            filter=[remove_timeouts, create_same_attr]),
                outfile='ipc.html')

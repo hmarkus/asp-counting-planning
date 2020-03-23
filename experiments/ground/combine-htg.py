@@ -42,9 +42,9 @@ def get_valid(run):
         return False
 
 
-exp = Experiment('/home/blaas/projects/asp-grounding-planning/experiments/ground/data/combined-htg-eval')
-exp.add_fetcher('/home/blaas/projects/asp-grounding-planning/experiments/ground/data/htg-eval')
-exp.add_fetcher('/home/blaas/projects/grounding/htg')
+exp = Experiment('/home/blaas/work/projects/asp-grounding-planning/experiments/ground/data/combined-htg-eval')
+exp.add_fetcher('/home/blaas/work/projects/asp-grounding-planning/experiments/ground/data/htg-eval')
+exp.add_fetcher('/home/blaas/work/projects/grounding/htg')
 exp.add_report(BaseReport(attributes=['total_time'],
                            filter=[remove_timeouts, create_same_attr]),
                outfile='htg.html')
