@@ -60,8 +60,7 @@ exp = Experiment(environment=ENV)
 # Add custom parser for Power Lifted.
 exp.add_parser('parser.py')
 
-CONFIGS = [Configuration('gringo', ['--ground-actions']),
-           Configuration('clingo', ['--ground-actions', '--clingo'])]
+CONFIGS = [Configuration('clingo', ['--ground-actions', '--clingo'])]
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:
