@@ -5,6 +5,7 @@ import argparse
 import os
 import shutil
 import sys
+import subprocess
 import tempfile
 import time
 import uuid
@@ -47,6 +48,7 @@ if __name__ == '__main__':
         dynasp = find_dynasp()
         temporary_filename = str(uuid.uuid4())
         command = [dynasp, "-f", theory_output, "-a", "lpopt"]
+        temp_file = open(temporary_filename, "w+t")
         execute(command, stdout=temporary_filename)
         os.rename(temporary_filename, theory_output)
 

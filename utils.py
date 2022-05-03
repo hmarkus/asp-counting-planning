@@ -63,9 +63,10 @@ def find_dynasp():
 
 def file_length(filename):
     with open(filename) as f:
-        for i, _ in enumerate(f):
-            pass
-    return i + 1
+        i = 0
+        for _, _ in enumerate(f):
+            i = i + 1
+    return i
 
 def get_number_of_atoms(filename):
     with open(filename) as f:

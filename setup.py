@@ -48,7 +48,7 @@ def main():
 
         install_requires=[
             'setuptools',
-            "tarski @ git+ssh://git@github.com/aig-upf/tarski.git@33efb7e#egg=tarski-devel"
+            "tarski" # @ git+ssh://git@github.com/aig-upf/tarski.git@33efb7e#egg=tarski-devel"
         ],
 
         extras_require={
