@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import time
+import uuid
 
 from tarski.io import FstripsReader
 from tarski.io import find_domain_filename
@@ -27,6 +28,8 @@ def parse_arguments():
     parser.add_argument('--ground-actions', action='store_true', help="Ground actions or not.")
     parser.add_argument('-r', '--remove-files', action='store_true', help="Remove model and theory files.")
     parser.add_argument('--clingo', action='store_true', help="Use clingo instead of gringo to avoid I/O overhead.")
+    parser.add_argument('--dynasp-preprocessor', action='store_true', help="Use dynasp to preproces s queries for faster grounding.")
+
 
     args = parser.parse_args()
     if args.domain is None:
@@ -59,6 +62,23 @@ def compute_time(start, use_clingo, model):
         return (time.time() - start_time)
 
 
+def find_dynasp():
+    if os.environ.get('DYNASP_BIN_PATH') is not None:
+        return os.environ.get('DYNASP_BIN_PATH')
+    else:
+        print("You need to set an environment variable $DYNASP_BIN_PATH as the path to the binary file of dynasp.")
+        sys.exit(-1)
+
+
+def sanitize(rules):
+    new_rules = []
+    for r in rules:
+        for replacement in ((", ", ","), ("1 = 1,", "")):
+            r = r.replace(*replacement)
+        if "goal()" in r:
+            r = r.replace("goal()", "goal_reachable")
+        new_rules.append(r)
+    return new_rules
 
 if __name__ == '__main__':
     args = parse_arguments()
@@ -82,8 +102,17 @@ if __name__ == '__main__':
 
     lp, tr = create_reachability_lp(problem, args.ground_actions)
     with open(theory_output, 'w+t') as output:
-        _ = [print(str(r), file=output) for r in lp.rules]
+        rules = sanitize(lp.rules)
+        _ = [print(str(r), file=output) for r in rules]
         print("ASP model being copied to %s" % theory_output)
+
+    if args.dynasp_preprocessor:
+        dynasp = find_dynasp()
+        temporary_filename = str(uuid.uuid4())
+        command = [dynasp, "-f", theory_output, "-a", "lpopt"]
+        execute(command, stdout=temporary_filename)
+        os.rename(temporary_filename, theory_output)
+
     grounder = select_grounder(args.clingo)
 
     extra_options = []
