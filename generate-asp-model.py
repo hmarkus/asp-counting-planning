@@ -10,75 +10,12 @@ import time
 import uuid
 
 from tarski.io import FstripsReader
-from tarski.io import find_domain_filename
 from tarski.reachability import create_reachability_lp, run_clingo
 from tarski.theories import Theory
 from tarski.utils.command import silentremove, execute
 from tarski.syntax.transform.universal_effect_elimination import expand_universal_effect, compile_universal_effects_away
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description='Generate models.')
-    parser.add_argument('-i', '--instance', required=True, help="The path to the problem instance file.")
-    parser.add_argument('--domain', default=None, help="(Optional) The path to the problem domain file. If none is "
-                                                       "provided, the system will try to automatically deduce "
-                                                       "it from the instance filename.")
-
-    parser.add_argument('-m', '--model-output', default='output.model', help="Model output file.")
-    parser.add_argument('-t', '--theory-output', default='output.theory', help="Theory output file.")
-    parser.add_argument('--ground-actions', action='store_true', help="Ground actions or not.")
-    parser.add_argument('-r', '--remove-files', action='store_true', help="Remove model and theory files.")
-    parser.add_argument('--clingo', action='store_true', help="Use clingo instead of gringo to avoid I/O overhead.")
-    parser.add_argument('--dynasp-preprocessor', action='store_true', help="Use dynasp to preproces s queries for faster grounding.")
-
-
-    args = parser.parse_args()
-    if args.domain is None:
-        args.domain = find_domain_filename(args.instance)
-        if args.domain is None:
-            raise RuntimeError(f'Could not find domain filename that matches instance file "{args.domain}"')
-
-    return args
-
-
-def select_grounder(use_clingo):
-    grounder_name = "gringo"
-    if use_clingo:
-        grounder_name = "clingo"
-    grounder = shutil.which(grounder_name)
-    if grounder is None:
-        raise CommandNotFoundError("gringo")
-    return grounder
-
-
-def compute_time(start, use_clingo, model):
-    if  use_clingo:
-        # Clingo -> "Reading : Xs"
-        with open(model, "r") as mf:
-            for line in mf:
-                if line.startswith("Reading      :"):
-                    return (float(line.split()[2]))
-    else:
-        # Gringo -> manual computation
-        return (time.time() - start_time)
-
-
-def find_dynasp():
-    if os.environ.get('DYNASP_BIN_PATH') is not None:
-        return os.environ.get('DYNASP_BIN_PATH')
-    else:
-        print("You need to set an environment variable $DYNASP_BIN_PATH as the path to the binary file of dynasp.")
-        sys.exit(-1)
-
-
-def sanitize(rules):
-    new_rules = []
-    for r in rules:
-        for replacement in ((", ", ","), ("1 = 1,", "")):
-            r = r.replace(*replacement)
-        if "goal()" in r:
-            r = r.replace("goal()", "goal_reachable")
-        new_rules.append(r)
-    return new_rules
+from utils import *
 
 if __name__ == '__main__':
     args = parse_arguments()
@@ -118,6 +55,8 @@ if __name__ == '__main__':
     extra_options = []
     if args.clingo:
         extra_options = ['-V2', '--quiet']
+    else:
+        extra_options=['--output', 'text']
     with open(args.model_output, 'w+t') as output:
         start_time = time.time()
         command = [grounder, theory_output] + extra_options
@@ -126,6 +65,8 @@ if __name__ == '__main__':
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, args.clingo, args.model_output))
+            print("Size of the model: %d" % file_length(args.model_output))
+            print("Number of atoms (not actions): %d" % get_number_of_atoms(args.model_output))
         else:
             print ("Gringo finished correctly: 0")
 
