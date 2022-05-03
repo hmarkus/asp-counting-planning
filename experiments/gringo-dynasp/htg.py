@@ -84,9 +84,7 @@ TIME_LIMIT = 1800
 MEMORY_LIMIT = 16384
 
 ATTRIBUTES=['ground',
-            'total_time',
-            'model_size',
-            'atoms']
+            'total_time']
 
 # Create a new experiment.
 exp = Experiment(environment=ENV)
@@ -94,10 +92,10 @@ exp = Experiment(environment=ENV)
 # Add custom parser for Power Lifted.
 exp.add_parser('parser.py')
 
-CONFIGS = [Configuration('gringo-ground-actions', ['--ground-actions']),
-           Configuration('gringo-ground-actions+dynasp', ['--ground-actions', '--dynasp-preprocessor']),
-           Configuration('gringo-no-actions', []),
-           Configuration('gringo-no-actions+dynasp', ['--dynasp-preprocessor'])]
+CONFIGS = [Configuration('gringo-ground-actions', ['--ground-actions', '--clingo']),
+           Configuration('gringo-ground-actions+dynasp', ['--ground-actions', '--dynasp-preprocessor', '--clingo']),
+           Configuration('gringo-no-actions', ['--clingo']),
+           Configuration('gringo-no-actions+dynasp', ['--dynasp-preprocessor', '--clingo'])]
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:

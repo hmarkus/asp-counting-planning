@@ -67,8 +67,9 @@ if __name__ == '__main__':
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, args.clingo, args.model_output))
-            print("Size of the model: %d" % file_length(args.model_output))
-            print("Number of atoms (not actions): %d" % get_number_of_atoms(args.model_output))
+            if not args.clingo:
+                print("Size of the model: %d" % file_length(args.model_output))
+                print("Number of atoms (not actions): %d" % get_number_of_atoms(args.model_output))
         else:
             print ("Gringo finished correctly: 0")
 
