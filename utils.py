@@ -79,7 +79,7 @@ def get_number_of_atoms(filename):
 def sanitize(rules):
     new_rules = []
     for r in rules:
-        for replacement in ((", ", ","), ("1 = 1,", "")):
+        for replacement in ((", ", ","), ("1 = 1,", ""), ("()", "")):
             r = r.replace(*replacement)
         if "goal()" in r:
             r = r.replace("goal()", "goal_reachable")
