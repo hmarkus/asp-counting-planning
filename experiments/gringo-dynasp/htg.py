@@ -144,11 +144,34 @@ def combine_larger_domains(run):
     return run
 
 
+def domain_as_category(run1, run2):
+    # run2['domain'] has the same value, because we always
+    # compare two runs of the same problem.
+    return run1["domain"]
+
 # Make a report.
 exp.add_report(
     BaseReport(attributes=ATTRIBUTES,
                filter=[combine_larger_domains]),
     outfile='report.html')
+
+
+exp.add_report(ScatterPlotReport(attributes=['total_time'],
+                                 filter_algorithm=['gringo-no-actions', 'gringo-no-actions+dynasp'],
+                                 filter=[combine_larger_domains],
+                                 get_category=domain_as_category,
+                                 scale='symlog',
+                                 format='tex'),
+               outfile='total-time-no-actions.tex')
+
+
+exp.add_report(ScatterPlotReport(attributes=['total_time'],
+                                 filter_algorithm=['gringo-ground-actions', 'gringo-ground-actions+dynasp'],
+                                 filter=[combine_larger_domains],
+                                 get_category=domain_as_category,
+                                 scale='symlog',
+                                 format='tex'),
+               outfile='total-time-ground-actions.tex')
 
 # Parse the commandline and run the specified steps.
 exp.run_steps()

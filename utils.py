@@ -20,7 +20,7 @@ def parse_arguments():
     parser.add_argument('-r', '--remove-files', action='store_true', help="Remove model and theory files.")
     parser.add_argument('--clingo', action='store_true', help="Use clingo instead of gringo to avoid I/O overhead.")
     parser.add_argument('--dynasp-preprocessor', action='store_true', help="Use dynasp to preproces s queries for faster grounding.")
-
+    parser.add_argument('--fd-split', action='store_true', help="Use Fast Downward rule splitting.")
 
     args = parser.parse_args()
     if args.domain is None:
@@ -68,12 +68,18 @@ def file_length(filename):
             i = i + 1
     return i
 
-def get_number_of_atoms(filename):
+def get_number_of_atoms(filename, fd_split):
     with open(filename) as f:
         counter = 0
         for line in f.readlines():
-            if "atom" in line:
-                counter = counter+1
+            if not fd_split:
+                # WARNING: this check is very unsafe...
+                string_check = ["atom", "EQUALPREDICATE", "goal", "type_"]
+                if any(w in line for w in string_check):
+                    counter = counter+1
+            else:
+                if "temp__" not in line and not 'equals(' in line:
+                    counter = counter+1
     return counter
 
 def sanitize(rules):
