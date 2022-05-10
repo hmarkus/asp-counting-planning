@@ -84,7 +84,7 @@ class PrologProgram:
         printed_message = False
         for rule in self.rules:
             if rule.rename_duplicate_variables() and not printed_message:
-                print("Duplicate arguments: Adding equality conditions.")
+                print("Duplicate arguments: Adding equality conditions.", file=sys.stderr)
                 printed_message = True
 
     def convert_trivial_rules(self):
