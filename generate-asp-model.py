@@ -39,7 +39,8 @@ if __name__ == '__main__':
     problem = compile_universal_effects_away(problem)
 
     if args.fd_split:
-        command = ['src/translate/pddl_to_prolog.py', domain_file, instance_file]
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        command = [dir_path+'/src/translate/pddl_to_prolog.py', domain_file, instance_file]
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
         execute(command, stdout=theory_output)
