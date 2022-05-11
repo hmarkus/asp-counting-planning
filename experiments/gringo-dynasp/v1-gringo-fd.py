@@ -95,9 +95,11 @@ exp.add_parser('parser.py')
 CONFIGS = [Configuration('gringo-ground-actions', ['--ground-actions', '--clingo']),
            Configuration('gringo-ground-actions+dynasp', ['--ground-actions', '--dynasp-preprocessor', '--clingo']),
            Configuration('gringo-ground-actions+fd', ['--ground-actions', '--fd-split', '--clingo']),
+           Configuration('gringo-ground-actions+fd-htd', ['--ground-actions', '--htd-split', '--clingo']),
            Configuration('gringo-no-actions', ['--clingo']),
            Configuration('gringo-no-actions+dynasp', ['--dynasp-preprocessor', '--clingo']),
-           Configuration('gringo-no-actions+fd', ['--fd-split', '--clingo']),]
+           Configuration('gringo-no-actions+fd', ['--fd-split', '--clingo']),
+           Configuration('gringo-no-actions+fd-htd', ['--htd-split', '--clingo'])]
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:

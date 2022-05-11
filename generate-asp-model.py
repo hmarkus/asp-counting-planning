@@ -46,7 +46,7 @@ if __name__ == '__main__':
             theory_output = "after-htd-split.lp"
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
-        execute(command)
+        execute(command, stdout=theory_output)
         print("ASP model being copied to %s" % theory_output)
     else:
         lp, tr = create_reachability_lp(problem, args.ground_actions)
