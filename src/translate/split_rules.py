@@ -53,8 +53,8 @@ def split_rule(rule, name_generator):
             if arg[0] == "?":
                 important_conditions.append(cond)
                 break
-        else:
-            trivial_conditions.append(cond)
+            else:
+                trivial_conditions.append(cond)
 
     # important_conditions = [cond for cond in rule.conditions if cond.args]
     # trivial_conditions = [cond for cond in rule.conditions if not cond.args]
