@@ -38,12 +38,15 @@ if __name__ == '__main__':
         strict_with_requirements=False).read_problem(domain_file, instance_file)
     problem = compile_universal_effects_away(problem)
 
-    if args.fd_split:
+    if args.fd_split or args.htd_split:
         dir_path = os.path.dirname(os.path.realpath(__file__))
         command = [dir_path+'/src/translate/pddl_to_prolog.py', domain_file, instance_file]
+        if args.htd_split:
+            command.extend(['--htd', '--only-output-htd-program'])
+            theory_output = "after-htd-split.lp"
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
-        execute(command, stdout=theory_output)
+        execute(command)
         print("ASP model being copied to %s" % theory_output)
     else:
         lp, tr = create_reachability_lp(problem, args.ground_actions)
@@ -51,6 +54,7 @@ if __name__ == '__main__':
             rules = sanitize(lp.rules)
             _ = [print(str(r), file=output) for r in rules]
             print("ASP model being copied to %s" % theory_output)
+
 
     if args.dynasp_preprocessor:
         dynasp = find_dynasp()
@@ -77,7 +81,7 @@ if __name__ == '__main__':
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, args.clingo, args.model_output))
             if not args.clingo:
                 print("Size of the model: %d" % file_length(args.model_output))
-                print("Number of atoms (not actions): %d" % get_number_of_atoms(args.model_output, args.fd_split))
+                print("Number of atoms (not actions): %d" % get_number_of_atoms(args.model_output, args.fd_split, args.htd_split))
         else:
             print ("Gringo finished correctly: 0")
 

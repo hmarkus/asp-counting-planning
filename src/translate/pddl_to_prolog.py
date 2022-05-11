@@ -84,7 +84,7 @@ class PrologProgram:
         printed_message = False
         for rule in self.rules:
             if rule.rename_duplicate_variables() and not printed_message:
-                print("Duplicate arguments: Adding equality conditions.")
+                print("Duplicate arguments: Adding equality conditions.", file=sys.stderr)
                 printed_message = True
 
     def convert_trivial_rules(self):
@@ -320,6 +320,7 @@ def translate(task):
     if options.only_output_htd_program:
         with open("after-htd-split.lp", "w") as lp_file:
             prog.dump_sanitized(lp_file) # sanitized dump for clingo and dynasp
+        sys.exit()
     return prog
 
 
@@ -333,4 +334,4 @@ if __name__ == "__main__":
     prog = translate(task)
     prog.rename_free_variables()
     prog.remove_duplicated_rules()
-    prog.dump() # normal dump
+    prog.dump_sanitized()
