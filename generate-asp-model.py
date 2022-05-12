@@ -56,10 +56,10 @@ if __name__ == '__main__':
             print("ASP model being copied to %s" % theory_output)
 
 
-    if args.dynasp_preprocessor:
-        dynasp = find_dynasp()
+    if args.lpopt_preprocessor:
+        lpopt = find_lpopt()
         temporary_filename = str(uuid.uuid4())
-        command = [dynasp, "-f", theory_output, "-a", "lpopt"]
+        command = [lpopt, "-f", theory_output]
         temp_file = open(temporary_filename, "w+t")
         execute(command, stdout=temporary_filename)
         os.rename(temporary_filename, theory_output)

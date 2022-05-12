@@ -19,7 +19,7 @@ def parse_arguments():
     parser.add_argument('--ground-actions', action='store_true', help="Ground actions or not.")
     parser.add_argument('-r', '--remove-files', action='store_true', help="Remove model and theory files.")
     parser.add_argument('--clingo', action='store_true', help="Use clingo instead of gringo to avoid I/O overhead.")
-    parser.add_argument('--dynasp-preprocessor', action='store_true', help="Use dynasp to preproces s queries for faster grounding.")
+    parser.add_argument('--lpopt-preprocessor', action='store_true', help="Use lpopt to preprocess rules.")
     parser.add_argument('--fd-split', action='store_true', help="Use Fast Downward rule splitting.")
     parser.add_argument('--htd-split', action='store_true', help="Use HTD rule splitting.")
 
@@ -54,11 +54,11 @@ def compute_time(start, use_clingo, model):
         return (time.time() - start)
 
 
-def find_dynasp():
-    if os.environ.get('DYNASP_BIN_PATH') is not None:
-        return os.environ.get('DYNASP_BIN_PATH')
+def find_lpopt():
+    if os.environ.get('LPOPT_BIN_PATH') is not None:
+        return os.environ.get('LPOPT_BIN_PATH')
     else:
-        print("You need to set an environment variable $DYNASP_BIN_PATH as the path to the binary file of dynasp.")
+        print("You need to set an environment variable $LPOPT_BIN_PATH as the path to the binary file of lpopt.")
         sys.exit(-1)
 
 
@@ -88,7 +88,7 @@ def sanitize(rules):
     for r in rules:
         for replacement in ((", ", ","), ("1 = 1,", ""), ("()", "")):
             r = r.replace(*replacement)
-        if "goal()" in r:
-            r = r.replace("goal()", "goal_reachable")
+        if "_solvable_" in r:
+            r = r.replace("_solvable_", "goal_reachable")
         new_rules.append(r)
     return new_rules
