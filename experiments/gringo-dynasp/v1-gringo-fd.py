@@ -93,11 +93,11 @@ exp = Experiment(environment=ENV)
 exp.add_parser('parser.py')
 
 CONFIGS = [Configuration('gringo-ground-actions', ['--ground-actions', '--clingo']),
-           Configuration('gringo-ground-actions+dynasp', ['--ground-actions', '--dynasp-preprocessor', '--clingo']),
+           Configuration('gringo-ground-actions+lpopt', ['--ground-actions', '--lpopt-preprocessor', '--clingo']),
            Configuration('gringo-ground-actions+fd', ['--ground-actions', '--fd-split', '--clingo']),
            Configuration('gringo-ground-actions+fd-htd', ['--ground-actions', '--htd-split', '--clingo']),
            Configuration('gringo-no-actions', ['--clingo']),
-           Configuration('gringo-no-actions+dynasp', ['--dynasp-preprocessor', '--clingo']),
+           Configuration('gringo-no-actions+lpopt', ['--lpopt-preprocessor', '--clingo']),
            Configuration('gringo-no-actions+fd', ['--fd-split', '--clingo']),
            Configuration('gringo-no-actions+fd-htd', ['--htd-split', '--clingo'])]
 
@@ -161,7 +161,7 @@ exp.add_report(
 
 
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
-                                 filter_algorithm=['gringo-no-actions', 'gringo-no-actions+dynasp'],
+                                 filter_algorithm=['gringo-no-actions', 'gringo-no-actions+lpopt'],
                                  filter=[combine_larger_domains],
                                  get_category=domain_as_category,
                                  scale='symlog',
@@ -170,7 +170,7 @@ exp.add_report(ScatterPlotReport(attributes=['total_time'],
 
 
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
-                                 filter_algorithm=['gringo-ground-actions', 'gringo-ground-actions+dynasp'],
+                                 filter_algorithm=['gringo-ground-actions', 'gringo-ground-actions+lpopt'],
                                  filter=[combine_larger_domains],
                                  get_category=domain_as_category,
                                  scale='symlog',
