@@ -38,22 +38,22 @@ if __name__ == '__main__':
         strict_with_requirements=False).read_problem(domain_file, instance_file)
     problem = compile_universal_effects_away(problem)
 
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     if args.fd_split or args.htd_split:
-        dir_path = os.path.dirname(os.path.realpath(__file__))
         command = [dir_path+'/src/translate/pddl_to_prolog.py', domain_file, instance_file]
         if args.htd_split:
             command.extend(['--htd', '--only-output-htd-program'])
-            theory_output = "after-htd-split.lp"
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
         execute(command, stdout=theory_output)
         print("ASP model being copied to %s" % theory_output)
     else:
-        lp, tr = create_reachability_lp(problem, args.ground_actions)
-        with open(theory_output, 'w+t') as output:
-            rules = sanitize(lp.rules)
-            _ = [print(str(r), file=output) for r in rules]
-            print("ASP model being copied to %s" % theory_output)
+        command=[dir_path+'/src/translate/pddl_to_prolog.py', domain_file,
+                 instance_file, '--only-output-direct-program']
+        if not args.ground_actions:
+            command.extend(['--remove-action-predicates'])
+        execute(command, stdout=theory_output)
+        print("ASP model being copied to %s" % theory_output)
 
 
     if args.lpopt_preprocessor:

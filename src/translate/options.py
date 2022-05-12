@@ -62,6 +62,10 @@ def parse_args():
         dest="only_output_htd_program", action="store_true",
         help="only output program after hypertree decomposition (no grounding)")
     argparser.add_argument(
+        "--only-output-direct-program",
+        dest="only_output_direct_program", action="store_true",
+        help="only output direct program encoding")
+    argparser.add_argument(
         "--dump-task", action="store_true",
         help="dump human-readable SAS+ representation of the task")
     return argparser.parse_args()

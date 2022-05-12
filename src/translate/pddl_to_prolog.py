@@ -313,13 +313,12 @@ def translate(task):
     prog.normalize()
     if options.remove_action_predicates:
         prog.remove_action_predicates()
-    if options.only_output_htd_program:
-        with open("original-no-split.lp", "w") as original_lp_file:
-            prog.dump_sanitized(original_lp_file)
+    if options.only_output_direct_program:
+        prog.dump_sanitized()
+        sys.exit()
     prog.split_rules()
     if options.only_output_htd_program:
-        with open("after-htd-split.lp", "w") as lp_file:
-            prog.dump_sanitized(lp_file) # sanitized dump for clingo and dynasp
+        prog.dump_sanitized() # sanitized dump for clingo and dynasp
         sys.exit()
     return prog
 
