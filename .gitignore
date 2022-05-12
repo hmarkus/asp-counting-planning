@@ -2,4 +2,5 @@
 *.model
 *.theory
 src/asp_grounding.egg-info/
+dist/
 experiments/*/data/

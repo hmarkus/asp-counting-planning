@@ -20,9 +20,9 @@ def get_description():
 
 def main():
     setup(
-        name='asp-grounding',
+        name='delete-free-asp-planner',
         version=0.1,
-        description='Grounding planning tasks with ASP grounders',
+        description='A simple planner for delete-free problems',
         long_description=get_description(),
         url='',
         author='Augusto Blaas Corrêa and Guillem Francès',
@@ -48,7 +48,8 @@ def main():
 
         install_requires=[
             'setuptools',
-            "tarski" # @ git+ssh://git@github.com/aig-upf/tarski.git@33efb7e#egg=tarski-devel"
+            'numpy==1.18.1',
+            'tarski==0.4.0'
         ],
 
         extras_require={
