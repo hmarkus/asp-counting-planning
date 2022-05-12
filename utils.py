@@ -73,14 +73,8 @@ def get_number_of_atoms(filename, fd_split, htd_split):
     with open(filename) as f:
         counter = 0
         for line in f.readlines():
-            if fd_split or htd_split:
-                if "temp__" not in line and not 'equals(' in line:
-                    counter = counter+1
-            else:
-                # WARNING: this check is very unsafe...
-                string_check = ["atom", "EQUALPREDICATE", "goal", "type_"]
-                if any(w in line for w in string_check):
-                    counter = counter+1
+            if "temp__" not in line and not 'equals(' in line:
+                counter = counter+1
     return counter
 
 def sanitize(rules):
