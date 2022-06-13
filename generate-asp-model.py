@@ -10,7 +10,6 @@ import tempfile
 import time
 import uuid
 
-from tarski.io import FstripsReader
 from tarski.reachability import create_reachability_lp, run_clingo
 from tarski.theories import Theory
 from tarski.utils.command import silentremove, execute
@@ -31,12 +30,6 @@ if __name__ == '__main__':
         sys.exit()
 
     theory_output = args.theory_output
-
-    problem = FstripsReader(
-        raise_on_error=True,
-        theories=[Theory.EQUALITY],
-        strict_with_requirements=False).read_problem(domain_file, instance_file)
-    problem = compile_universal_effects_away(problem)
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if args.fd_split or args.htd_split:

@@ -5,7 +5,23 @@ import sys
 import tempfile
 import time
 
-from tarski.io import find_domain_filename
+def find_domain_filename(task_filename):
+    """
+    Find domain filename for the given task using automatic naming rules.
+    """
+    dirname, basename = os.path.split(task_filename)
+
+    domain_basenames = [
+        "domain.pddl",
+        basename[:3] + "-domain.pddl",
+        "domain_" + basename,
+        "domain-" + basename,
+    ]
+
+    for domain_basename in domain_basenames:
+        domain_filename = os.path.join(dirname, domain_basename)
+        if os.path.exists(domain_filename):
+            return domain_filename
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate models.')
