@@ -14,37 +14,6 @@ least for now).
 
 *Note:* This is an ongoing work.
 
-## Usage
-
-To run the program, execute
-
-```bash
-$ ./generate-asp-model.py -i /path/to/instance.pddl [-m MODEL-OUTPUT] [-t THEORY-OUTPUT]
-```
-
-the program will generate the Datalog encoding corresponding to the PDDL task
-and ground it using gringo. The Datalog file will be saved in `MODEL-OUTPUT`
-(default: `output.theory`); the canonical model (together with any other output
-from the grounder) will be saved in `THEORY-OUTPUT` (default: `output.model`).
-
-There are some extra options one can use:
-
-- `--ground-actions`: Use the encoding from Helmert (AIJ 2009) where action
-  predicates are listed explcitly.
-- `--clingo`: Calls `clingo` instead of `gringo`. You must have `clingo` on the
-  `PATH`. Note that the `THEORY-OUTPUT` file will contain the output of `clingo`
-  (which is not the canonical model). This is useful for cases where the output
-  size of the produced files is limited.
-- `--dynasp-preprocessor`: Uses the DynASP preprocessor, `lpopt`, to optimize
-  the Datalog program. This option expects an environment variable called
-  `DYNASP_BIN_PATH` to point to the binary file of `dynasp`.
-- `--fd-split`: Uses Fast Downward preprocessor to split rules of the Datalog
-  program. This uses the method by Helmert (AIJ 2009).
-- `--htd-split`: (This option is not fully functional yet.) Splits the rules
-  based on the hypertree decompositions of the rule bodies. It expects
-  `BalancedGo` to be on the `PATH`.
-
-
 ## Installation
 
 We recommend using a Python virtual environment. Once inside the virtual
@@ -54,10 +23,54 @@ environment, you can run
 $ python setup.py install
 ```
 
+or
+
+```bash
+$ pip install -e .
+```
+
+while in the root directory of the repository.
+
+## Usage
+
+To run the program, execute
+
+```bash
+$ ./generate-asp-model.py -i /path/to/instance.pddl [-m MODEL-OUTPUT] [-t THEORY-OUTPUT]
+```
+
+where `/path/to/instance.pddl` is the path to a *PDDL instance* (not the domain
+file!). It is necessary that there is a PDDL domain file in the same directory
+as `instance.pddl`, though. The script will infer the domain file automatically.
+
+The program will generate the Datalog encoding corresponding to the PDDL task
+and ground it using gringo. The Datalog file will be saved in `MODEL-OUTPUT`
+(default: `output.theory`); the canonical model (together with any other output
+from the grounder) will be saved in `THEORY-OUTPUT` (default: `output.model`).
+
+There are some extra options one can use:
+
+- `--ground-actions`: Use the encoding from Helmert (AIJ 2009) where action
+  predicates are listed explcitly.
+- `--grounder`: Select grounder to be used to ground the Datalog
+  program. Current options are `gringo` and `newground`. You must have either
+  `gringo` or/and `newground` on the `PATH`. (Default: `gringo`)
+- `--lpopt-preprocessor`: Uses the `lpopt` preprocessor to rewrite the Datalog
+  program. This option expects an environment variable called `LPOPT_BIN_PATH`
+  to point to the binary file of `lpopt`.
+- `--fd-split`: Uses Fast Downward preprocessor to split rules of the Datalog
+  program. This uses the method by Helmert (AIJ 2009).
+- `--htd-split`: (This option is not fully functional yet.) Splits the rules
+  based on the hypertree decompositions of the rule bodies. It expects
+  `BalancedGo` to be on the `PATH`.
+
 to install the necessary packages.
 
 
 ### Requirements
 
-- You must have `gringo` on the `PATH`
-- Python3.6 or newer
+- Python3.7 or newer (if you do not want to use `newground` then Python 3.6
+  should also work)
+- You must have `gringo` and/or `newground` on the `PATH`.
+- To use `lpopt`, you must also have an environment variable called
+  `LPOPT_BIN_PATH` to point to the binary file of `lpopt`
