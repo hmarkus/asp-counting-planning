@@ -57,13 +57,21 @@ if __name__ == '__main__':
         execute(command, stdout=temporary_filename)
         os.rename(temporary_filename, theory_output)
 
-    grounder = select_grounder(args.clingo)
+    grounder = select_grounder(args.grounder)
 
     extra_options = []
-    if args.clingo:
+
+    # It is unclear whether we can still support clingo, but I left this here
+    # just in case we revert the change.
+    if args.grounder == 'clingo':
         extra_options = ['-V2', '--quiet']
-    else:
+    elif args.grounder == 'gringo':
         extra_options=['--output', 'text']
+    elif args.grounder == 'newground':
+        extra_options=['--no-show', '--ground']
+
+    use_clingo = args.grounder == 'clingo'
+
     with open(args.model_output, 'w+t') as output:
         start_time = time.time()
         command = [grounder, theory_output] + extra_options
@@ -71,8 +79,8 @@ if __name__ == '__main__':
         if retcode == 0 or retcode == 30:
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
-            print("Total time (in seconds): %0.5fs" % compute_time(start_time, args.clingo, args.model_output))
-            if not args.clingo:
+            print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))
+            if not use_clingo:
                 print("Size of the model: %d" % file_length(args.model_output))
                 print("Number of atoms (not actions): %d" % get_number_of_atoms(args.model_output, args.fd_split, args.htd_split))
         else:

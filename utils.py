@@ -34,7 +34,7 @@ def parse_arguments():
     parser.add_argument('-t', '--theory-output', default='output.theory', help="Theory output file.")
     parser.add_argument('--ground-actions', action='store_true', help="Ground actions or not.")
     parser.add_argument('-r', '--remove-files', action='store_true', help="Remove model and theory files.")
-    parser.add_argument('--clingo', action='store_true', help="Use clingo instead of gringo to avoid I/O overhead.")
+    parser.add_argument('--grounder', default='gringo', help="Select grounder.", choices=['gringo', 'newground'])
     parser.add_argument('--lpopt-preprocessor', action='store_true', help="Use lpopt to preprocess rules.")
     parser.add_argument('--fd-split', action='store_true', help="Use Fast Downward rule splitting.")
     parser.add_argument('--htd-split', action='store_true', help="Use HTD rule splitting.")
@@ -48,13 +48,11 @@ def parse_arguments():
     return args
 
 
-def select_grounder(use_clingo):
-    grounder_name = "gringo"
-    if use_clingo:
-        grounder_name = "clingo"
+def select_grounder(grounder_name):
     grounder = shutil.which(grounder_name)
     if grounder is None:
-        raise CommandNotFoundError("gringo")
+        print("Grounder %s not found in PATH." % grounder_name)
+        raise FileNotFoundError(grounder_name)
     return grounder
 
 
