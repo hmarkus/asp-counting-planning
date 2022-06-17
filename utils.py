@@ -87,7 +87,8 @@ def get_number_of_atoms(filename, fd_split, htd_split):
     with open(filename) as f:
         counter = 0
         for line in f.readlines():
-            if "temp__" not in line and not 'equals(' in line:
+            if "__x" not in line and not 'equals(' in line:
+                # Ignore temporary and built-in predicates
                 counter = counter+1
     return counter
 
