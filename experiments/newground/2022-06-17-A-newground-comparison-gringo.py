@@ -96,7 +96,7 @@ exp.add_parser('parser.py')
 
 CONFIGS = []
 
-for grounder in ['gringo', 'newground']:
+for grounder in ['newground']:
     CONFIGS = CONFIGS + [Configuration(f'{grounder}-ground-actions', ['--ground-actions', '--grounder', grounder]),
                          Configuration(f'{grounder}-ground-actions+lpopt', ['--ground-actions', '--lpopt-preprocessor', '--grounder', grounder]),
                          Configuration(f'{grounder}-ground-actions+fd', ['--ground-actions', '--fd-split', '--grounder', grounder]),
