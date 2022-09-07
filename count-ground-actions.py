@@ -9,7 +9,7 @@ class ActionsCounter:
     #model_file:  the model of the planning task without grounding actions
     #theory_file: the theory of the plannign task INCLUDING actions
     def __init__(self, model_file, theory_file):
-        self._model = model_file.read()
+        self._model = model_file.readlines()
         self._theory = theory_file.readlines()
         #self.parseActions(theory_file.readlines())
 
@@ -59,33 +59,47 @@ class ActionsCounter:
                     ln = ln + 1
                 rule.write(".\n")
                 prog.write(":- not {}.\n".format(head[1]))
-                prog.write(self.decomposeAction(rule.getvalue()))
-                yield prog.getvalue()
+                p, l = self.decomposeAction(rule.getvalue())
+                prog.write(p)
+                yield prog.getvalue(), l + 1 + ln * (len(body[2:]) + 2)
         #return prog.getvalue()
 
 
     def countActions(self, stream):
         cnt = 0
-        for cnts in stream:
-            print(self.countAction(cnts))
+        lowerb = False
+        for cnts, nbrules in stream:
+            res = self.countAction(cnts, nbrules)
+            if not res is None:
+                cnt += res
+            else:
+                lowerb = True
+            print("# of actions (intermediate result): {}{}".format(cnt, "+" if lowerb else ""))
+        return "{}{}".format(cnt, "+" if lowerb else "")
 
-    def countAction(self, prog):
-        cnt = io.StringIO()
+    def countAction(self, prog, nbrules):
+        #cnt = io.StringIO()
         lpcnt = os.environ.get('LPCNT_BIN_PATH')
         inpt = io.StringIO()
-        inpt.write(self._model)
+        inpt.writelines(self._model)
         inpt.write(prog)
         assert(lpcnt is not None)
         with (subprocess.Popen([lpcnt], stdin=subprocess.PIPE, stdout=subprocess.PIPE)) as proc:
-            print()
-            print("next program")
-            print(prog)
-            cnt.writelines(proc.communicate((inpt.getvalue()).encode())[0].decode())
+            #print()
+            print("counting on {} facts (model) and {} rules (theory + encoding for counting)".format(len(self._model), nbrules))
+            #print(prog)
+            out, err = proc.communicate(inpt.getvalue().encode())
+            #cnt.writelines(proc.communicate((inpt.getvalue()).encode())[0].decode())
             #proc.stdin.write(rule)
             #proc.stdin.flush()
             #proc.stdin.close()
             #prog.writelines(proc.stdout.readlines())
-        return(cnt.getvalue())
+        #return(cnt.getvalue())
+        res = None
+        for line in out.decode().split("\n"):
+            if line.startswith("s "):
+                res = int(line[2:])
+        return res
 
 
     def decomposeAction(self, rules):
@@ -98,12 +112,12 @@ class ActionsCounter:
             #proc.stdin.flush()
             #proc.stdin.close()
             #prog.writelines(proc.stdout.readlines())
-        return(prog.getvalue())
-  
+        return prog.getvalue(), len(prog.getvalue().split("\n"))
+          
 
 # for quick testing (use case: direct translator)
 if __name__ == "__main__":
     a = ActionsCounter(open("output.cnt"), open("output.theory-full"))
     #print("\n".join(a.parseActions()))
-    a.countActions(a.parseActions())
+    print("# of actions: {}".format(a.countActions(a.parseActions())))
 
