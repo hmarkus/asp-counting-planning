@@ -1,4 +1,5 @@
 #!/bin/bash
-PTH=~/root/usr/bin
+PTH=./build/bdist.linux-x86_64/
 CNTER=d4-1.0
-$PTH/gringo --output smodels |  $PTH/lp2lp2-1.23 | $PTH/lp2sat-1.24 | $PTH/runsolver-3.4.0 -M 4000 -W 120 -w /dev/null $PTH/$CNTER /dev/stdin
+#$PTH/gringo --output smodels |  $PTH/lp2lp2-1.23 | $PTH/lp2sat-1.24 | $PTH/runsolver-3.4.0 -M 4000 -W 120 -w /dev/null $PTH/$CNTER /dev/stdin
+$PTH/gringo  |  $PTH/lp2lp2-1.23 | $PTH/lp2sat-1.24 | $PTH/runsolver-3.4.0 -M 4000 -W 500 -w /dev/null $PTH/$CNTER /dev/stdin
