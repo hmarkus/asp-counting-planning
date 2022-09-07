@@ -1,0 +1,6 @@
+#!/bin/bash
+PTH=~/root/usr/bin
+CNTER=d4-1.0
+#this is for newer gringo versions
+#$PTH/gringo --output smodels | $PTH/p2lp2-1.23 | $PTH/lp2sat-1.24 | $PTH/$CNTER /dev/stdin
+$PTH/gringo |  $PTH/lp2lp2-1.23 | $PTH/lp2sat-1.24 | $PTH/$CNTER /dev/stdin
