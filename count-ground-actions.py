@@ -61,15 +61,15 @@ class ActionsCounter:
                 prog.write(":- not {}.\n".format(head[1]))
                 p, l = self.decomposeAction(rule.getvalue())
                 prog.write(p)
-                yield prog.getvalue(), l + 1 + ln * (len(body[2:]) + 2)
+                yield prog.getvalue(), l + 1 + ln * (len(body[2:]) + 2), head[1]
         #return prog.getvalue()
 
 
     def countActions(self, stream):
         cnt = 0
         lowerb = False
-        for cnts, nbrules in stream:
-            res = self.countAction(cnts, nbrules)
+        for cnts, nbrules, predicate in stream:
+            res = self.countAction(cnts, nbrules, predicate)
             if not res is None:
                 cnt += res
             else:
@@ -77,7 +77,7 @@ class ActionsCounter:
             print("# of actions (intermediate result): {}{}".format(cnt, "+" if lowerb else ""))
         return "{}{}".format(cnt, "+" if lowerb else "")
 
-    def countAction(self, prog, nbrules):
+    def countAction(self, prog, nbrules, pred):
         #cnt = io.StringIO()
         lpcnt = os.environ.get('LPCNT_BIN_PATH')
         inpt = io.StringIO()
@@ -86,7 +86,7 @@ class ActionsCounter:
         assert(lpcnt is not None)
         with (subprocess.Popen([lpcnt], stdin=subprocess.PIPE, stdout=subprocess.PIPE)) as proc:
             #print()
-            print("counting on {} facts (model) and {} rules (theory + encoding for counting)".format(len(self._model), nbrules))
+            print("counting {} on {} facts (model) and {} rules (theory + encoding for counting)".format(pred, len(self._model), nbrules))
             #print(prog)
             out, err = proc.communicate(inpt.getvalue().encode())
             #cnt.writelines(proc.communicate((inpt.getvalue()).encode())[0].decode())
