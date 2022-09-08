@@ -60,6 +60,7 @@ class ActionsCounter:
                     ln = ln + 1
                 rule.write(".\n")
                 prog.write(":- not {}.\n".format(head[1]))
+                prog.write("#show {}/0.\n".format(head[1]))
                 p, l = self.decomposeAction(rule.getvalue())
                 prog.write(p)
                 yield prog.getvalue(), l + 1 + ln * (len(body[2:]) + 2), head[1]
@@ -86,6 +87,10 @@ class ActionsCounter:
         inpt = io.StringIO()
         inpt.writelines(self._model)
         inpt.write(prog)
+        #debug output
+        #f=open(pred, "w")
+        #f.write(inpt.getvalue())
+        #f.close()
         with (subprocess.Popen([lpcnt], stdin=subprocess.PIPE, stdout=subprocess.PIPE)) as proc:
             #print()
             print("counting {} on {} facts (model) and {} rules (theory + encoding for counting)".format(pred, len(self._model), nbrules))
