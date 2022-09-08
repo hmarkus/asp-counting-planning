@@ -5,4 +5,4 @@ CNTER=d4-1.2
 GRINGOPMS=--output smodels
 #for older gringo versions
 #GRINGOPMS=
-$GRINGO_BIN_PATH $GRINGOPMS  |  $PTH/lp2lp2-1.23 | $PTH/lp2sat-1.24 | $PTH/pmc-1.0 -vivification -eliminateLit -litImplied -iterate=10
+$GRINGO_BIN_PATH $GRINGOPMS  |  $PTH/lp2lp2-1.23 | $PTH/lp2sat-1.24 | $PTH/pmc-1.0 -vivification -eliminateLit -litImplied -iterate=10 -equiv -orGate -affine
