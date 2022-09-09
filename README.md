@@ -74,3 +74,12 @@ to install the necessary packages.
 - You must have `gringo` and/or `newground` on the `PATH`.
 - To use `lpopt`, you must also have an environment variable called
   `LPOPT_BIN_PATH` to point to the binary file of `lpopt`
+
+
+
+### Requirements for Counting
+
+- Add environment variable `LPCNT_AUX_PATH` pointing to
+  `/path/to/repo/build/bdist.linux-x86_64`
+- Add environment variable `GRINGO_BIN_PATH` pointing to the desired gringo
+  installation
