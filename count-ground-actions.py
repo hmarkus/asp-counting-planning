@@ -106,6 +106,9 @@ class ActionsCounter:
         for line in out.decode().split("\n"):
             if line.startswith("s "):
                 res = int(line[2:])
+            elif line.startswith("Models       : "):
+                pos = -1 if line.find("+") > -1 else len(line)
+                res = int(line[15:line.find("+")])
         return res
 
 
@@ -126,6 +129,8 @@ class ActionsCounter:
 # todo exception handling for io, signal handling, ...
 if __name__ == "__main__":
     assert(os.environ.get('LPCNT_AUX_PATH') is not None)
+    assert(os.environ.get('LPCNT_BIN_PATH') is not None)
+    assert(os.environ.get('LPOPT_BIN_PATH') is not None)
     #with (subprocess.Popen([os.environ.get('LPCNT_AUX_PATH') + "/set_env_vars.sh"])) as proc:
     #    pass
     parser = argparse.ArgumentParser(description='Count the # of actions that would be contained in a full grounding. Requires to set env variable LPCNT_AUX_PATH containing auxiliary binaries used in lpcnt AND executing source $LPCNT_AUX_PATH/set_env_vars.sh first (or setting those environment variables right)')
