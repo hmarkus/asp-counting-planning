@@ -30,6 +30,8 @@ if __name__ == '__main__':
         sys.exit()
 
     theory_output = args.theory_output
+    theory_output_with_actions = args.theory_output.replace(".theory", "-with-actions.theory")
+    print("Saving extra copy of theory with actions to %s" % theory_output_with_actions)
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if args.fd_split or args.htd_split:
@@ -47,6 +49,12 @@ if __name__ == '__main__':
             command.extend(['--remove-action-predicates'])
         execute(command, stdout=theory_output)
         print("ASP model being copied to %s" % theory_output)
+
+    # Produces extra theory file with actions
+    command=[dir_path+'/src/translate/pddl_to_prolog.py', domain_file,
+                 instance_file, '--only-output-direct-program']
+    execute(command, stdout=theory_output_with_actions)
+    print("ASP model *with actions* being copied to %s" % theory_output_with_actions)
 
 
     if args.lpopt_preprocessor:
