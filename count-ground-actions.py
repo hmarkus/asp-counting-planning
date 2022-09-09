@@ -126,9 +126,9 @@ class ActionsCounter:
 # todo exception handling for io, signal handling, ...
 if __name__ == "__main__":
     assert(os.environ.get('LPCNT_AUX_PATH') is not None)
-    with (subprocess.Popen([os.environ.get('LPCNT_AUX_PATH') + "/set_env_vars.sh"])) as proc:
-        pass
-    parser = argparse.ArgumentParser(description='Count the # of actions that would be contained in a full grounding. Requires to set env variable LPCNT_AUX_PATH containing set_env_vars.sh and auxiliary binaries used in lpcnt')
+    #with (subprocess.Popen([os.environ.get('LPCNT_AUX_PATH') + "/set_env_vars.sh"])) as proc:
+    #    pass
+    parser = argparse.ArgumentParser(description='Count the # of actions that would be contained in a full grounding. Requires to set env variable LPCNT_AUX_PATH containing auxiliary binaries used in lpcnt AND executing source $LPCNT_AUX_PATH/set_env_vars.sh first (or setting those environment variables right)')
     parser.add_argument('-m', '--model', required=True, help="The (compact) model of the theory without grounding actions.")
     parser.add_argument('-t', '--theory', required=True, help="The (full) theory containing actions.")
     args = parser.parse_args()
