@@ -81,9 +81,9 @@ class ActionsCounter:
 
     def countAction(self, prog, nbrules, pred):
         #cnt = io.StringIO()
-        assert(os.environ.get('GRINGO_BIN_PATH') is not None) # gringo is used by lpcnt
+        #assert(os.environ.get('GRINGO_BIN_PATH') is not None) # gringo is used by lpcnt
         lpcnt = os.environ.get('LPCNT_BIN_PATH')
-        assert(os.environ.get('LPCNT_BIN_PATH') is not None and lpcnt is not None)
+        assert(lpcnt is not None)
         inpt = io.StringIO()
         inpt.writelines(self._model)
         inpt.write(prog)
@@ -112,7 +112,7 @@ class ActionsCounter:
     def decomposeAction(self, rules):
         prog = io.StringIO()
         lpopt = os.environ.get('LPOPT_BIN_PATH')
-        assert(os.environ.get('LPOPT_BIN_PATH') is not None and lpopt is not None)
+        assert(lpopt is not None)
         with (subprocess.Popen([lpopt], stdin=subprocess.PIPE, stdout=subprocess.PIPE)) as proc:
             prog.writelines(proc.communicate(rules.encode())[0].decode())
             #proc.stdin.write(rule)
@@ -125,7 +125,10 @@ class ActionsCounter:
 # for quick testing (use case: direct translator)
 # todo exception handling for io, signal handling, ...
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Count the # of actions that would be contained in a full grounding. Requires to set env variables GRINGO_BIN_PATH, LPCNT_BIN_PATH, as well as LPOPT_BIN_PATH')
+    assert(os.environ.get('LPCNT_AUX_PATH') is not None)
+    with (subprocess.Popen([os.environ.get('LPCNT_AUX_PATH') + "/set_env_vars.sh"])) as proc:
+        pass
+    parser = argparse.ArgumentParser(description='Count the # of actions that would be contained in a full grounding. Requires to set env variable LPCNT_AUX_PATH containing set_env_vars.sh and auxiliary binaries used in lpcnt')
     parser.add_argument('-m', '--model', required=True, help="The (compact) model of the theory without grounding actions.")
     parser.add_argument('-t', '--theory', required=True, help="The (full) theory containing actions.")
     args = parser.parse_args()
