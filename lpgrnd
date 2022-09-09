@@ -1,3 +1,3 @@
 #!/bin/bash
-source $LPCNT_AUX_PATH/set_env_vars.sh
+#source $LPCNT_AUX_PATH/set_env_vars.sh
 $GRINGO_BIN_PATH --output smodels  |  $LPCNT_AUX_PATH/lp2lp2-1.23 | $LPCNT_AUX_PATH/lp2sat-1.24 # | $LPCNT_AUX_PATH/pmc-1.0 -vivification -eliminateLit -litImplied -iterate=10 -equiv -orGate -affine
