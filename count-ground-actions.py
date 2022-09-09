@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import re
 import os
 import io
@@ -123,7 +124,7 @@ class ActionsCounter:
             #proc.stdin.close()
             #prog.writelines(proc.stdout.readlines())
         return prog.getvalue(), len(prog.getvalue().split("\n"))
-          
+
 
 # for quick testing (use case: direct translator)
 # todo exception handling for io, signal handling, ...
@@ -140,6 +141,6 @@ if __name__ == "__main__":
 
     #a = ActionsCounter(open("output.cnt"), open("output.theory-full"))
     #print("\n".join(a.parseActions()))
-    
+
     a = ActionsCounter(open(args.model), open(args.theory))
     print("# of actions: {}".format(a.countActions(a.parseActions())))
