@@ -47,7 +47,7 @@ else:
 TIME_LIMIT = 1800
 MEMORY_LIMIT = 16384
 
-ATTRIBUTES=['counter_actions']
+ATTRIBUTES=['counter_actions', 'run_dir']
 
 # Create a new experiment.
 exp = Experiment(environment=ENV)
@@ -56,7 +56,7 @@ exp = Experiment(environment=ENV)
 exp.add_parser('parser.py')
 exp.add_parser('counter-parser.py')
 
-CONFIGS = [Configuration('count-actions', ['--grounder', 'gringo'])]
+CONFIGS = [Configuration('count-actions', ['--grounder', 'gringo', '--lpopt-preprocessor'])]
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:
@@ -125,6 +125,9 @@ exp.add_report(
                filter=[combine_larger_domains]),
     outfile='report.html')
 
+exp.add_report(
+    BaseReport(attributes=ATTRIBUTES),
+    outfile='count-org-synthesis.html')
 
 # Parse the commandline and run the specified steps.
 exp.run_steps()
