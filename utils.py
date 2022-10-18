@@ -38,6 +38,7 @@ def parse_arguments():
     parser.add_argument('--lpopt-preprocessor', action='store_true', help="Use lpopt to preprocess rules.")
     parser.add_argument('--fd-split', action='store_true', help="Use Fast Downward rule splitting.")
     parser.add_argument('--htd-split', action='store_true', help="Use HTD rule splitting.")
+    parser.add_argument("--inequality-rules", dest="inequality_rules", action="store_true", help="add inequalities to rules")
 
     args = parser.parse_args()
     if args.domain is None:

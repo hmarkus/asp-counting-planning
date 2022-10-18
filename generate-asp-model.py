@@ -45,6 +45,8 @@ if __name__ == '__main__':
                  instance_file, '--only-output-direct-program']
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
+        if args.inequality_rules:
+            command.extend(['--inequality-rules'])
         execute(command, stdout=theory_output)
         print("ASP model being copied to %s" % theory_output)
 
