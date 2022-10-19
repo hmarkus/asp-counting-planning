@@ -10,7 +10,8 @@ import argparse
 class ActionsCounter:
     #model_file:  the model of the planning task without grounding actions
     #theory_file: the theory of the plannign task INCLUDING actions
-    def __init__(self, model_file, theory_file):
+    def __init__(self, model_file, theory_file, gen_choices):
+        self._gen_choices = gen_choices
         self._model = model_file.readlines()
         self._theory = theory_file.readlines()
         #self.parseActions(theory_file.readlines())
@@ -55,9 +56,12 @@ class ActionsCounter:
                         pred = "{}({})".format(body[1], ",".join(body[2:]))
                         cpred = "{}({}_c)".format(body[1], "_c,".join(body[2:]))
                         rule.write("p_{}{}".format(cnt, pred))
-                        prog.write("p_{1}{0} :- not n_{1}{0}, {0}. n_{1}{0} :- not p_{1}{0}, {0}.\n".format(pred, cnt))
-                        for par in body[2:]:
-                            prog.write(":- p_{3}{0}, p_{3}{1}, {2} > {2}_c.\n".format(pred, cpred, par, cnt))
+                        if self._gen_choices:
+                            prog.write("1 {{ p_{1}{0} : {0} }} 1.\n".format(pred, cnt))
+                        else:
+                            prog.write("p_{1}{0} :- not n_{1}{0}, {0}. n_{1}{0} :- not p_{1}{0}, {0}.\n".format(pred, cnt))
+                            for par in body[2:]:
+                                prog.write(":- p_{3}{0}, p_{3}{1}, {2} > {2}_c.\n".format(pred, cpred, par, cnt))
                     ln = ln + 1
                 rule.write(".\n")
                 prog.write(":- not {}.\n".format(head[1]))
@@ -137,10 +141,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Count the # of actions that would be contained in a full grounding. Requires to set env variable LPCNT_AUX_PATH containing auxiliary binaries used in lpcnt AND executing source $LPCNT_AUX_PATH/set_env_vars.sh first (or setting those environment variables right)')
     parser.add_argument('-m', '--model', required=True, help="The (compact) model of the theory without grounding actions.")
     parser.add_argument('-t', '--theory', required=True, help="The (full) theory containing actions.")
+    parser.add_argument('-c', '--choices', required=False, action="store_const", const=True, default=False, help="Enables the generation of choice rules.")
     args = parser.parse_args()
 
     #a = ActionsCounter(open("output.cnt"), open("output.theory-full"))
     #print("\n".join(a.parseActions()))
 
-    a = ActionsCounter(open(args.model), open(args.theory))
+    a = ActionsCounter(open(args.model), open(args.theory), args.choices)
     print("# of actions: {}".format(a.countActions(a.parseActions())))
