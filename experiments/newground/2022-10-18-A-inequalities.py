@@ -98,10 +98,13 @@ CONFIGS = []
 
 for grounder in ['newground']:
     for ineq in [True, False]:
-        CONFIGS = CONFIGS + [Configuration(f'{"ineq-" if ineq else ""}{grounder}-ground-actions', ['--ground-actions', '--grounder', grounder]),
-                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-ground-actions+lpopt', ['--ground-actions', '--lpopt-preprocessor', '--grounder', grounder]),
-                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-no-actions', ['--grounder', grounder]),
-                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-no-actions+lpopt', ['--lpopt-preprocessor', '--grounder', grounder])]
+        extra = []
+        if ineq:
+            extra = ['--inequality-rules']
+        CONFIGS = CONFIGS + [Configuration(f'{"ineq-" if ineq else ""}{grounder}-ground-actions', ['--ground-actions', '--grounder', grounder] + extra),
+                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-ground-actions+lpopt', ['--ground-actions', '--lpopt-preprocessor', '--grounder', grounder] + extra),
+                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-no-actions', ['--grounder', grounder] + extra),
+                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-no-actions+lpopt', ['--lpopt-preprocessor', '--grounder', grounder] + extra)]
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:
