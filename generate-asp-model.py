@@ -78,7 +78,7 @@ if __name__ == '__main__':
         start_time = time.time()
         command = [grounder, theory_output] + extra_options
         retcode = execute(command, stdout=output)
-        if retcode == 0 or retcode == 30:
+        if retcode == 0:
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))

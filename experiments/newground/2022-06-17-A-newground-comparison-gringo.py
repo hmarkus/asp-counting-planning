@@ -86,7 +86,8 @@ MEMORY_LIMIT = 16384
 ATTRIBUTES=['ground',
             'total_time',
             'model_size',
-            'atoms']
+            'atoms',
+            'run_dir']
 
 # Create a new experiment.
 exp = Experiment(environment=ENV)
