@@ -10,10 +10,14 @@ import argparse
 class ActionsCounter:
     #model_file:  the model of the planning task without grounding actions
     #theory_file: the theory of the plannign task INCLUDING actions
-    def __init__(self, model_file, theory_file, gen_choices):
+    def __init__(self, model_file, theory_file, gen_choices, output_actions):
         self._gen_choices = gen_choices
         self._model = model_file.readlines()
         self._theory = theory_file.readlines()
+        self._output = output_actions
+        #self._vars = {}
+        #self._pos = {}
+        self._preds = {}
         #self.parseActions(theory_file.readlines())
 
     def generateRegEx(self, name):
@@ -42,6 +46,12 @@ class ActionsCounter:
             head = self.getPred(r.match(l))
             if not head is None:
                 #print(head)
+                ip = 0
+                _vars = {}
+                _pos = {}
+                for pb in head[2:]:
+                    _vars[pb] = ip
+                    ip = ip + 1
                 rule.write(head[1] + " :- ")
                 ln = 0
                 for p in rl.finditer(l, len(head[0])):
@@ -53,9 +63,20 @@ class ActionsCounter:
                         rule.write(body[0])
                     else: #get predicate and predicate with copy vars
                         cnt = cnt + 1
+                        pnam = "p_{}{}".format(cnt,body[1])
                         pred = "{}({})".format(body[1], ",".join(body[2:]))
+                        ip = 0
+                        for pb in body[2:]:
+                            if not _vars[pb] in _pos.keys(): #has_key(self._vars[p]):  
+                                _pos[_vars[pb]] = (pnam, ip)
+                                #ps = self._preds[pnam] if ip > 0 {} else
+                                #self._preds[pnam] = ps
+                                self._preds[pnam + "," + str(ip)] = _vars[pb]
+                            ip = ip + 1
                         cpred = "{}({}_c)".format(body[1], "_c,".join(body[2:]))
                         rule.write("p_{}{}".format(cnt, pred))
+                        if self._output:
+                            prog.write("#show p_{1}{0}/{2}.\n".format(body[1], cnt, len(body[2:])))
                         if self._gen_choices:
                             prog.write("1 {{ p_{1}{0} : {0} }} 1.\n".format(pred, cnt))
                         else:
@@ -65,9 +86,15 @@ class ActionsCounter:
                     ln = ln + 1
                 rule.write(".\n")
                 prog.write(":- not {}.\n".format(head[1]))
-                prog.write("#show {}/0.\n".format(head[1]))
+                if not self._output:
+                    prog.write("#show {}/0.\n".format(head[1]))
+                #else:
+                #    prog.write("#show {}/{}.\n".format(head[1], len(head[2:])))
+                #    prog.write("{}({}) :- \n".format(head[1], ",".join(head[2:])))
+                #    for p in rl.finditer(l, len(head[0])):
                 p, l = self.decomposeAction(rule.getvalue())
                 prog.write(p)
+                print(_vars, self._preds, _pos)
                 yield prog.getvalue(), l + 1 + ln * (len(body[2:]) + 2), head[1]
         #return prog.getvalue()
 
@@ -93,9 +120,9 @@ class ActionsCounter:
         inpt.writelines(self._model)
         inpt.write(prog)
         #debug output
-        #f=open(pred, "w")
-        #f.write(inpt.getvalue())
-        #f.close()
+        f=open(pred, "w")
+        f.write(inpt.getvalue())
+        f.close()
         with (subprocess.Popen([lpcnt], stdin=subprocess.PIPE, stdout=subprocess.PIPE)) as proc:
             #print()
             print("counting {} on {} facts (model) and {} rules (theory + encoding for counting)".format(pred, len(self._model), nbrules))
@@ -108,12 +135,27 @@ class ActionsCounter:
             #prog.writelines(proc.stdout.readlines())
         #return(cnt.getvalue())
         res = None
-        for line in out.decode().split("\n"):
+        r = self.generateRegEx("^p_")
+        for line in out.decode().split("\n"): #any whitespace
             if line.startswith("s "):
                 res = int(line[2:])
             elif line.startswith("Models       : "):
                 pos = -1 if line.find("+") > -1 else len(line)
                 res = int(line[15:pos])
+            elif self._output and line.startswith("p_"):
+                ps = [None] * len(self._preds)
+                #print(line,self._preds)
+                for l in line.split(" "):
+                    atom = self.getPred(r.match(l))
+                    if not atom is None:
+                        ip = 0 
+                        for px in atom[2:]:
+                            k = atom[1] + "," + str(ip)
+                            #print(self._preds,k,px)
+                            if k in self._preds.keys():
+                                ps[self._preds[k]] = px
+                            ip = ip + 1
+                #print("{}({})".format(pred, ",".join(ps)))
         return res
 
 
@@ -142,10 +184,11 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', required=True, help="The (compact) model of the theory without grounding actions.")
     parser.add_argument('-t', '--theory', required=True, help="The (full) theory containing actions.")
     parser.add_argument('-c', '--choices', required=False, action="store_const", const=True, default=False, help="Enables the generation of choice rules.")
+    parser.add_argument('-o', '--output', required=False, action="store_const", const=True, default=False, help="Enables the output of actions.")
     args = parser.parse_args()
 
     #a = ActionsCounter(open("output.cnt"), open("output.theory-full"))
     #print("\n".join(a.parseActions()))
 
-    a = ActionsCounter(open(args.model), open(args.theory), args.choices)
+    a = ActionsCounter(open(args.model), open(args.theory), args.choices, args.output)
     print("# of actions: {}".format(a.countActions(a.parseActions())))
