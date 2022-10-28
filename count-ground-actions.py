@@ -17,7 +17,7 @@ class ActionsCounter:
         self._output = output_actions
         #self._vars = {}
         #self._pos = {}
-        self._preds = {}
+        #self._preds = {}
         #self.parseActions(theory_file.readlines())
 
     def generateRegEx(self, name):
@@ -47,6 +47,7 @@ class ActionsCounter:
             if not head is None:
                 #print(head)
                 ip = 0
+                self._preds = {}
                 _vars = {}
                 _pos = {}
                 for pb in head[2:]:
@@ -66,9 +67,10 @@ class ActionsCounter:
                         pnam = "p_{}{}".format(cnt,body[1])
                         pred = "{}({})".format(body[1], ",".join(body[2:]))
                         ip = 0
+                        #print(body[2:])
                         for pb in body[2:]:
                             if not _vars[pb] in _pos.keys(): #has_key(self._vars[p]):  
-                                _pos[_vars[pb]] = (pnam, ip)
+                                _pos[_vars[pb]] = True # (pnam, ip)
                                 #ps = self._preds[pnam] if ip > 0 {} else
                                 #self._preds[pnam] = ps
                                 self._preds[pnam + "," + str(ip)] = _vars[pb]
@@ -163,6 +165,7 @@ class ActionsCounter:
                                 if k in self._preds.keys():
                                     ps[self._preds[k]] = px
                                 ip = ip + 1
+                    #print(ps)
                     #print("{}({})".format(pred, ",".join(ps)))
             proc.stdout.close()
         return res
