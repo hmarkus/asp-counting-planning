@@ -127,35 +127,44 @@ class ActionsCounter:
             #print()
             print("counting {} on {} facts (model) and {} rules (theory + encoding for counting)".format(pred, len(self._model), nbrules))
             #print(prog)
-            out, err = proc.communicate(inpt.getvalue().encode())
+            #out, err = proc.communicate(inpt.getvalue().encode())
             #cnt.writelines(proc.communicate((inpt.getvalue()).encode())[0].decode())
-            #proc.stdin.write(rule)
-            #proc.stdin.flush()
-            #proc.stdin.close()
+            proc.stdin.write(inpt.getvalue().encode()) #rule)
+            #print(inpt.getvalue().encode())
+            proc.stdin.flush()
+            proc.stdin.close()
+            #print(proc.stdout.readlines())
             #prog.writelines(proc.stdout.readlines())
-        #return(cnt.getvalue())
-        res = None
-        r = self.generateRegEx("^p_")
-        for line in out.decode().split("\n"): #any whitespace
-            if line.startswith("s "):
-                res = int(line[2:])
-            elif line.startswith("Models       : "):
-                pos = -1 if line.find("+") > -1 else len(line)
-                res = int(line[15:pos])
-            elif self._output and line.startswith("p_"):
-                ps = [None] * len(self._preds)
-                #print(line,self._preds)
-                for l in line.split(" "):
-                    atom = self.getPred(r.match(l))
-                    if not atom is None:
-                        ip = 0 
-                        for px in atom[2:]:
-                            k = atom[1] + "," + str(ip)
-                            #print(self._preds,k,px)
-                            if k in self._preds.keys():
-                                ps[self._preds[k]] = px
-                            ip = ip + 1
-                #print("{}({})".format(pred, ",".join(ps)))
+            #return(cnt.getvalue())
+            res = None
+            #print(proc.stdout.read())
+            r = self.generateRegEx("^p_")
+            for line in proc.stdout:
+                #print(line)
+                line = line.decode()
+                #if not line:
+                #    break
+                #line = lne.decode().split("\n") #any whitespace
+                if line.startswith("s "):
+                    res = int(line[2:])
+                elif line.startswith("Models       : "):
+                    pos = -1 if line.find("+") > -1 else len(line)
+                    res = int(line[15:pos])
+                elif self._output and line.startswith("p_"):
+                    ps = [None] * len(self._preds)
+                    #print(line,self._preds)
+                    for l in line.split(" "):
+                        atom = self.getPred(r.match(l))
+                        if not atom is None:
+                            ip = 0 
+                            for px in atom[2:]:
+                                k = atom[1] + "," + str(ip)
+                                #print(self._preds,k,px)
+                                if k in self._preds.keys():
+                                    ps[self._preds[k]] = px
+                                ip = ip + 1
+                    #print("{}({})".format(pred, ",".join(ps)))
+            proc.stdout.close()
         return res
 
 
