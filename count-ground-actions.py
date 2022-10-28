@@ -171,7 +171,8 @@ class ActionsCounter:
                                     ps[self._preds[k]] = px
                                 ip = ip + 1
                     #print(ps)
-                    #print("{}({})".format(pred, ",".join(ps)))
+                    assert(None not in ps)
+                    print("{}({})".format(pred, ",".join(ps)))
             proc.stdout.close()
         return res
 
