@@ -49,7 +49,8 @@ class ActionsCounter:
                 ip = 0
                 self._preds = {}
                 _vars = {}
-                _pos = {}
+                _pos = set()
+                #done = set()
                 for pb in head[2:]:
                     _vars[pb] = ip
                     ip = ip + 1
@@ -68,13 +69,17 @@ class ActionsCounter:
                         pred = "{}({})".format(body[1], ",".join(body[2:]))
                         ip = 0
                         #print(body[2:])
-                        for pb in body[2:]:
-                            if not _vars[pb] in _pos.keys(): #has_key(self._vars[p]):  
-                                _pos[_vars[pb]] = True # (pnam, ip)
-                                #ps = self._preds[pnam] if ip > 0 {} else
-                                #self._preds[pnam] = ps
-                                self._preds[pnam + "," + str(ip)] = _vars[pb]
-                            ip = ip + 1
+                        #if body[1] not in done:
+                        if True:
+                            for pb in body[2:]:
+                                if _vars[pb] not in _pos: #has_key(self._vars[p]):  
+                                    _pos.add(_vars[pb]) # (pnam, ip)
+                                    #ps = self._preds[pnam] if ip > 0 {} else
+                                    #self._preds[pnam] = ps
+                                    self._preds[pnam + "," + str(ip)] = _vars[pb]
+                                ip = ip + 1
+                        #    done.add(body[1])
+                        #print(done)
                         cpred = "{}({}_c)".format(body[1], "_c,".join(body[2:]))
                         rule.write("p_{}{}".format(cnt, pred))
                         if self._output:
