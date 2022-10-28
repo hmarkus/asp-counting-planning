@@ -94,7 +94,7 @@ class ActionsCounter:
                 #    for p in rl.finditer(l, len(head[0])):
                 p, l = self.decomposeAction(rule.getvalue())
                 prog.write(p)
-                print(_vars, self._preds, _pos)
+                #print(_vars, self._preds, _pos)
                 yield prog.getvalue(), l + 1 + ln * (len(body[2:]) + 2), head[1]
         #return prog.getvalue()
 
