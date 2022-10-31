@@ -159,12 +159,28 @@ def domain_as_category(run1, run2):
     # compare two runs of the same problem.
     return run1["domain"]
 
+
+def found_model(run):
+    atoms = run.get('atoms')
+    if atoms is not None:
+        run['has_model'] = 1
+        if atoms == 0:
+            print(run['id'], "had 0 atoms in the model!")
+    else:
+        run['has_model'] = 0
+    return run
+
 # Make a report.
 exp.add_report(
-    BaseReport(attributes=ATTRIBUTES,
-               filter=[combine_larger_domains]),
+    BaseReport(attributes=ATTRIBUTES + ['has_model'],
+               filter=[combine_larger_domains,found_model]),
     outfile='report.html')
 
+
+exp.add_report(
+    BaseReport(attributes=['total_time', 'has_model'],
+               filter=[combine_larger_domains,found_model]),
+    outfile='correct-value-report.html')
 
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
                                  filter_algorithm=['gringo-no-actions', 'gringo-no-actions+lpopt'],
@@ -173,6 +189,7 @@ exp.add_report(ScatterPlotReport(attributes=['total_time'],
                                  scale='symlog',
                                  format='tex'),
                outfile='total-time-no-actions.tex')
+
 
 
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
