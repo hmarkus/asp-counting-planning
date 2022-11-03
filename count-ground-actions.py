@@ -10,11 +10,12 @@ import argparse
 class ActionsCounter:
     #model_file:  the model of the planning task without grounding actions
     #theory_file: the theory of the plannign task INCLUDING actions
-    def __init__(self, model_file, theory_file, gen_choices, output_actions):
+    def __init__(self, model_file, theory_file, gen_choices, output_actions, extended_output):
         self._gen_choices = gen_choices
         self._model = model_file.readlines()
         self._theory = theory_file.readlines()
         self._output = output_actions
+        self._extoutput = extended_output
         #self._vars = {}
         #self._pos = {}
         #self._preds = {}
@@ -42,6 +43,7 @@ class ActionsCounter:
         for l in lines:
             prog = io.StringIO()
             rule = io.StringIO()
+            #typelist = io.StringIO()
             #print(l)
             head = self.getPred(r.match(l))
             if not head is None:
@@ -49,6 +51,7 @@ class ActionsCounter:
                 ip = 0
                 self._preds = {}
                 _vars = {}
+                _types = {}
                 _pos = set()
                 #done = set()
                 for pb in head[2:]:
@@ -56,12 +59,20 @@ class ActionsCounter:
                     ip = ip + 1
                 rule.write(head[1] + " :- ")
                 ln = 0
+                #typelist.write("1 {{ {0} : ".format(head[0]))
                 for p in rl.finditer(l, len(head[0])):
                     if ln > 0:
                         rule.write(",")
                     body = self.getPred(p)
                     assert(not body is None)
                     if body[1].startswith("type"):
+                        #if ln > 0:
+                        #    typelist.write(",")
+                        #typelist.write(body[0])
+                        if self._extoutput:
+                            for t in body[2]:
+                                _types[t] = body[0]
+                            prog.write("1 {{ g_{0}({0}) : {1} }} 1.\n".format(body[2], body[0]))
                         rule.write(body[0])
                     else: #get predicate and predicate with copy vars
                         cnt = cnt + 1
@@ -70,7 +81,7 @@ class ActionsCounter:
                         ip = 0
                         #print(body[2:])
                         #if body[1] not in done:
-                        if True:
+                        if self._output:
                             for pb in body[2:]:
                                 if _vars[pb] not in _pos: #has_key(self._vars[p]):  
                                     _pos.add(_vars[pb]) # (pnam, ip)
@@ -78,30 +89,42 @@ class ActionsCounter:
                                     #self._preds[pnam] = ps
                                     self._preds[pnam + "," + str(ip)] = _vars[pb]
                                 ip = ip + 1
-                        #    done.add(body[1])
-                        #print(done)
+                            #done.add(body[1])
+                        #else:
+                        #    print("DONE ALREADY ",done, body)
                         cpred = "{}({}_c)".format(body[1], "_c,".join(body[2:]))
                         rule.write("p_{}{}".format(cnt, pred))
                         if self._output:
                             prog.write("#show p_{1}{0}/{2}.\n".format(body[1], cnt, len(body[2:])))
-                        if self._gen_choices:
+                        if self._extoutput:
+                            prog.write(":- not {0}".format(pred))
+                            for pb in body[2:]:
+                                prog.write(", g_{0}({0})".format(pb))
+                            prog.write(".\n")
+                        elif self._gen_choices:
                             prog.write("1 {{ p_{1}{0} : {0} }} 1.\n".format(pred, cnt))
                         else:
                             prog.write("p_{1}{0} :- not n_{1}{0}, {0}. n_{1}{0} :- not p_{1}{0}, {0}.\n".format(pred, cnt))
                             for par in body[2:]:
                                 prog.write(":- p_{3}{0}, p_{3}{1}, {2} > {2}_c.\n".format(pred, cpred, par, cnt))
                     ln = ln + 1
-                rule.write(".\n")
-                prog.write(":- not {}.\n".format(head[1]))
-                if not self._output:
-                    prog.write("#show {}/0.\n".format(head[1]))
+                l = 0
+                if not self._extoutput:
+                    #prog.write("{0} }} 1.\n".format(typelist.getvalue()))
+                #else:    
+                    prog.write(":- not {}.\n".format(head[1]))
+                    if not self._output:
+                        prog.write("#show {}/0.\n".format(head[1]))
+                    rule.write(".\n")
                 #else:
                 #    prog.write("#show {}/{}.\n".format(head[1], len(head[2:])))
                 #    prog.write("{}({}) :- \n".format(head[1], ",".join(head[2:])))
                 #    for p in rl.finditer(l, len(head[0])):
-                p, l = self.decomposeAction(rule.getvalue())
-                prog.write(p)
+                    p, l = self.decomposeAction(rule.getvalue())
+                    prog.write(p)
                 #print(_vars, self._preds, _pos)
+                #print(prog.getvalue())
+                #print(len(body[2:]) + 2)
                 yield prog.getvalue(), l + 1 + ln * (len(body[2:]) + 2), head[1]
         #return prog.getvalue()
 
@@ -187,6 +210,7 @@ class ActionsCounter:
             #proc.stdin.flush()
             #proc.stdin.close()
             #prog.writelines(proc.stdout.readlines())
+        #print("DECOMPOSE {} {}".format(rules, prog.getvalue()))
         return prog.getvalue(), len(prog.getvalue().split("\n"))
 
 
@@ -203,10 +227,11 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theory', required=True, help="The (full) theory containing actions.")
     parser.add_argument('-c', '--choices', required=False, action="store_const", const=True, default=False, help="Enables the generation of choice rules.")
     parser.add_argument('-o', '--output', required=False, action="store_const", const=True, default=False, help="Enables the output of actions.")
+    parser.add_argument('-e', '--extendedOutput', required=False, action="store_const", const=True, default=False, help="Enables the extended output of actions.")
     args = parser.parse_args()
 
     #a = ActionsCounter(open("output.cnt"), open("output.theory-full"))
     #print("\n".join(a.parseActions()))
 
-    a = ActionsCounter(open(args.model), open(args.theory), args.choices, args.output)
+    a = ActionsCounter(open(args.model), open(args.theory), args.choices, args.output, args.extendedOutput)
     print("# of actions: {}".format(a.countActions(a.parseActions())))
