@@ -83,7 +83,7 @@ else:
 TIME_LIMIT = 1800
 MEMORY_LIMIT = 16384
 
-ATTRIBUTES=['counter_actions', 'run_dir']
+ATTRIBUTES=['counter_actions', 'gringo_time', 'newground_time', 'run_dir']
 
 # Create a new experiment.
 exp = Experiment(environment=ENV)
@@ -150,6 +150,23 @@ def combine_larger_domains(run):
         return run
     return run
 
+def model_computation_finished(run):
+    atoms = run.get('counter_actions')
+    if atoms is not None:
+        run['has_model'] = 1
+    else:
+        run['has_model'] = 0
+    return run
+
+def pipeline_time(run):
+    gringo = run.get('gringo_time')
+    newground = run.get('newground_time')
+    solved = run.get('has_model')
+    if solved == 1 and gringo is not None and newground is not None:
+        run['added_time'] = gringo + newground
+    else:
+        run['added_time'] = None
+    return run
 
 def domain_as_category(run1, run2):
     # run2['domain'] has the same value, because we always
@@ -158,8 +175,8 @@ def domain_as_category(run1, run2):
 
 # Make a report.
 exp.add_report(
-    BaseReport(attributes=ATTRIBUTES,
-               filter=[combine_larger_domains]),
+    BaseReport(attributes=ATTRIBUTES + ['has_model', 'added_time'],
+               filter=[combine_larger_domains, model_computation_finished, pipeline_time]),
     outfile='report.html')
 
 exp.add_report(
