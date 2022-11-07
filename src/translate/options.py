@@ -58,6 +58,10 @@ def parse_args():
         dest="htd", action="store_true",
         help="use hypertree decomposition to split logic program rules")
     argparser.add_argument(
+        "--inequality-rules",
+        dest="inequality_rules", action="store_true",
+        help="add inequalities to rules")
+    argparser.add_argument(
         "--only-output-htd-program",
         dest="only_output_htd_program", action="store_true",
         help="only output program after hypertree decomposition (no grounding)")

@@ -47,6 +47,8 @@ if __name__ == '__main__':
                  instance_file, '--only-output-direct-program']
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
+        if args.inequality_rules:
+            command.extend(['--inequality-rules'])
         execute(command, stdout=theory_output)
         print("ASP model being copied to %s" % theory_output)
 
@@ -84,7 +86,7 @@ if __name__ == '__main__':
         start_time = time.time()
         command = [grounder, theory_output] + extra_options
         retcode = execute(command, stdout=output)
-        if retcode == 0 or retcode == 30:
+        if retcode == 0:
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))

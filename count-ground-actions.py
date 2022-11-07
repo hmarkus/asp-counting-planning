@@ -83,7 +83,7 @@ class ActionsCounter:
                         #if body[1] not in done:
                         if self._output:
                             for pb in body[2:]:
-                                if _vars[pb] not in _pos: #has_key(self._vars[p]):  
+                                if _vars[pb] not in _pos: #has_key(self._vars[p]):
                                     _pos.add(_vars[pb]) # (pnam, ip)
                                     #ps = self._preds[pnam] if ip > 0 {} else
                                     #self._preds[pnam] = ps
@@ -111,7 +111,7 @@ class ActionsCounter:
                 l = 0
                 if not self._extoutput:
                     #prog.write("{0} }} 1.\n".format(typelist.getvalue()))
-                #else:    
+                #else:
                     prog.write(":- not {}.\n".format(head[1]))
                     if not self._output:
                         prog.write("#show {}/0.\n".format(head[1]))
@@ -186,7 +186,7 @@ class ActionsCounter:
                     for l in line.split(" "):
                         atom = self.getPred(r.match(l))
                         if not atom is None:
-                            ip = 0 
+                            ip = 0
                             for px in atom[2:]:
                                 k = atom[1] + "," + str(ip)
                                 #print(self._preds,k,px)
