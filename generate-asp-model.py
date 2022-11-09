@@ -47,14 +47,14 @@ if __name__ == '__main__':
                  instance_file, '--only-output-direct-program']
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
-        if args.inequality_rules:
-            command.extend(['--inequality-rules'])
         execute(command, stdout=theory_output)
         print("ASP model being copied to %s" % theory_output)
 
     # Produces extra theory file with actions
     command=[dir_path+'/src/translate/pddl_to_prolog.py', domain_file,
                  instance_file, '--only-output-direct-program']
+    if args.inequality_rules:
+        command.extend(['--inequality-rules'])
     execute(command, stdout=theory_output_with_actions)
     print("ASP model *with actions* being copied to %s" % theory_output_with_actions)
 
