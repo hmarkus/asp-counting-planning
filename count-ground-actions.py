@@ -22,13 +22,17 @@ class ActionsCounter:
         #self.parseActions(theory_file.readlines())
 
     def generateRegEx(self, name):
-        return re.compile("(?P<total>(?P<name>{}\w+)\s*\((?P<params>(\s*\w+\s*,?)+)\))".format(name))
+        return re.compile("(?P<total>(?P<name>{}\w+)\s*(!=(?P<param>\s*\w+\s*)|\((?P<params>(\s*\w+\s*,?)+)\)?))".format(name))
 
     def getPred(self, match):
         if match is None:
+            #print("nomatch")
             return None
         else:
-            return [match.group("total"), match.group("name"),] + list(map(lambda x: x.strip(), match.group("params").split(",")))
+            if match.group("params") is not None:
+                return [match.group("total"),match.group("name"),] + list(map(lambda x: x.strip(), match.group("params").split(",")))
+            else:
+                return [match.group("total"), "!=", match.group("name"), match.group("param")]
 
     #def parseActionsStream(self):
     #    return self.parseActions(self._theory.readlines())
@@ -77,7 +81,9 @@ class ActionsCounter:
                     else: #get predicate and predicate with copy vars
                         cnt = cnt + 1
                         pnam = "p_{}{}".format(cnt,body[1])
-                        pred = "{}({})".format(body[1], ",".join(body[2:]))
+                        pred = body[0] # "{}({})".format(body[1], ",".join(body[2:]))
+                        #if "!=" in body[0]:
+                        #    pred = "{}!=({})".format(body[1], ",".join(body[2:]))
                         ip = 0
                         #print(body[2:])
                         #if body[1] not in done:
@@ -97,7 +103,10 @@ class ActionsCounter:
                         if self._output:
                             prog.write("#show p_{1}{0}/{2}.\n".format(body[1], cnt, len(body[2:])))
                         if self._extoutput:
-                            prog.write(":- not {0}".format(pred))
+                            if body[1] == "!=":
+                                prog.write(":- {0}".format(pred.replace("!", "")))
+                            else:
+                                prog.write(":- not {0}".format(pred))
                             for pb in body[2:]:
                                 prog.write(", g_{0}({0})".format(pb))
                             prog.write(".\n")
