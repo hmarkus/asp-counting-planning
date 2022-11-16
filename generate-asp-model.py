@@ -10,6 +10,8 @@ import tempfile
 import time
 import uuid
 
+from subprocess import Popen, PIPE
+
 from tarski.reachability import create_reachability_lp, run_clingo
 from tarski.theories import Theory
 from tarski.utils.command import silentremove, execute
@@ -82,14 +84,19 @@ if __name__ == '__main__':
 
     use_clingo = args.grounder == 'clingo'
 
-    with open(args.model_output, 'w+t') as output:
+    model_output = args.model_output
+    with open(model_output, 'w+t') as output:
         start_time = time.time()
         command = [grounder, theory_output] + extra_options
-        retcode = execute(command, stdout=output)
-        if retcode == 0:
+        process = Popen(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, text=True)
+        grounder_output = process.communicate()[0]
+        if not args.suppress_output:
+            print(grounder_output, file=output)
+        if process.returncode == 0:
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))
+            print("Number of atoms (not actions):", len(grounder_output.split('\n')) - 1) #Gringo outputs a stupid empty line at the end, so we subtract that
             if args.grounder == 'newground':
                 with open(args.model_output, 'r') as model_file:
                     print(model_file.read())
