@@ -436,15 +436,15 @@ def parse_task_pddl(task_pddl, type_dict, predicate_dict):
                               pddl.NumericConstant):
                 raise SystemExit("Illegal assignment in initial state " +
                                  "specification:\n%s" % assignment)
-            if assignment.fluent in initial_assignments:
-                prev = initial_assignments[assignment.fluent]
-                if assignment.expression == prev.expression:
-                    print("Warning: %s is specified twice" % assignment,
-                          "in initial state specification")
-                else:
-                    raise SystemExit("Error in initial state specification\n" +
-                                     "Reason: conflicting assignment for " +
-                                     "%s." % assignment.fluent)
+            # if assignment.fluent in initial_assignments:
+            #     prev = initial_assignments[assignment.fluent]
+            #     if assignment.expression == prev.expression:
+            #         print("Warning: %s is specified twice" % assignment,
+            #               "in initial state specification", file=sys.stderr)
+            #     else:
+            #         raise SystemExit("Error in initial state specification\n" +
+            #                          "Reason: conflicting assignment for " +
+            #                          "%s." % assignment.fluent)
             else:
                 initial_assignments[assignment.fluent] = assignment
                 initial.append(assignment)
@@ -483,7 +483,7 @@ def check_atom_consistency(atom, same_truth_value, other_truth_value, atom_is_tr
     if atom in same_truth_value:
         if not atom_is_true:
             atom = atom.negate()
-        print("Warning: %s is specified twice in initial state specification" % atom)
+        #print("Warning: %s is specified twice in initial state specification" % atom)
 
 
 def check_for_duplicates(elements, errmsg, finalmsg):
