@@ -163,9 +163,10 @@ def domain_as_category(run1, run2):
 def found_model(run):
     atoms = run.get('atoms')
     if atoms is not None:
-        run['has_model'] = 1
-        if atoms == 0:
-            print(run['id'], "had 0 atoms in the model!")
+        if atoms > 0:
+            run['has_model'] = 1
+        else:
+            run['has_model'] = 0
     else:
         run['has_model'] = 0
     return run

@@ -34,7 +34,7 @@ def parse_arguments():
     parser.add_argument('-t', '--theory-output', default='output.theory', help="Theory output file.")
     parser.add_argument('--ground-actions', action='store_true', help="Ground actions or not.")
     parser.add_argument('-r', '--remove-files', action='store_true', help="Remove model and theory files.")
-    parser.add_argument('--grounder', default='gringo', help="Select grounder.", choices=['gringo', 'newground'])
+    parser.add_argument('--grounder', default='gringo', help="Select grounder.", choices=['gringo', 'newground', 'clingo'])
     parser.add_argument('--suppress-output', action='store_true', help="Suppress grounder output.")
     parser.add_argument('--lpopt-preprocessor', action='store_true', help="Use lpopt to preprocess rules.")
     parser.add_argument('--fd-split', action='store_true', help="Use Fast Downward rule splitting.")
@@ -59,15 +59,7 @@ def select_grounder(grounder_name):
 
 
 def compute_time(start, use_clingo, model):
-    if  use_clingo:
-        # Clingo -> "Reading : Xs"
-        with open(model, "r") as mf:
-            for line in mf:
-                if line.startswith("Reading      :"):
-                    return (float(line.split()[2]))
-    else:
-        # Gringo -> manual computation
-        return (time.time() - start)
+    return (time.time() - start)
 
 
 def find_lpopt():

@@ -92,7 +92,7 @@ if __name__ == '__main__':
         grounder_output = process.communicate()[0]
         if not args.suppress_output:
             print(grounder_output, file=output)
-        if process.returncode == 0:
+        if process.returncode == 0 or (use_clingo and process.returncode == 30):
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))
