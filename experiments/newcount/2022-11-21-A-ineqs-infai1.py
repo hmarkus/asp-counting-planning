@@ -67,9 +67,7 @@ if REMOTE:
              'visitall-multidimensional-5-dim-visitall-FAR-g2',
              'visitall-multidimensional-5-dim-visitall-FAR-g3']
     ENV = BaselSlurmEnvironment(
-        partition='infai_2',
-        memory_per_cpu="6G",
-        extra_options='#SBATCH --cpus-per-task=3',
+        partition='infai_1',
         setup="%s\n%s" % (
             BaselSlurmEnvironment.DEFAULT_SETUP,
             "source /infai/blaas/virtualenvs/newground/bin/activate\n"),
@@ -81,42 +79,40 @@ else:
     ENV = LocalEnvironment(processes=4)
 
 TIME_LIMIT = 1800
-MEMORY_LIMIT = 16384
+MEMORY_LIMIT = 3872
 
-ATTRIBUTES=['ground',
-            'total_time',
-            'model_size',
-            'atoms',
-            'run_dir']
+ATTRIBUTES=['counter_actions', 'gringo_time', 'newground_time', 'run_dir']
 
 # Create a new experiment.
 exp = Experiment(environment=ENV)
 
 # Add custom parser for Power Lifted.
 exp.add_parser('parser.py')
+exp.add_parser('counter-parser.py')
 
-CONFIGS = []
-
-for grounder in ['clingo']:
-    CONFIGS = CONFIGS + [Configuration(f'{grounder}-ground-actions', ['--ground-actions', '--grounder', grounder, '--suppress-output']),
-                         Configuration(f'{grounder}-ground-actions+lpopt', ['--ground-actions', '--lpopt-preprocessor', '--grounder', grounder, '--suppress-output']),
-                         Configuration(f'{grounder}-ground-actions+fd', ['--ground-actions', '--fd-split', '--grounder', grounder, '--suppress-output']),
-                         Configuration(f'{grounder}-ground-actions+fd-htd', ['--ground-actions', '--htd-split', '--grounder', grounder, '--suppress-output']),
-                         Configuration(f'{grounder}-no-actions', ['--grounder', grounder, '--suppress-output']),
-                         Configuration(f'{grounder}-no-actions+lpopt', ['--lpopt-preprocessor', '--grounder', grounder, '--suppress-output']),
-                         Configuration(f'{grounder}-no-actions+fd', ['--fd-split', '--grounder', grounder, '--suppress-output']),
-                         Configuration(f'{grounder}-no-actions+fd-htd', ['--htd-split', '--grounder', grounder, '--suppress-output'])]
+CONFIGS = [Configuration('baseline', ['--grounder', 'gringo', '--lpopt-preprocessor']),
+           Configuration('with-inequalities', ['--grounder', 'gringo', '--lpopt-preprocessor', '--inequality-rules'])]
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:
     for task in suites.build_suite(BENCHMARKS_DIR, SUITE):
         run = exp.add_run()
+        model_name = '{}-{}-{}.model'.format(config.name, task.domain, task.problem)
+        theory_name = '{}-{}-{}.theory'.format(config.name, task.domain, task.problem)
+        theory_with_actions = '{}-{}-{}-with-actions.theory'.format(config.name, task.domain, task.problem)
         run.add_resource('domain', task.domain_file, symlink=True)
         run.add_resource('problem', task.problem_file, symlink=True)
-        run.add_command('run-search',
+        run.add_command('run-grounder',
                         [RUN_SCRIPT_DIR+'/generate-asp-model.py', '-i', task.problem_file,
-                         '-m', '{}-{}-{}.model'.format(config.name, task.domain, task.problem),
-                         '-t', '{}-{}-{}.theory'.format(config.name, task.domain, task.problem)] + config.arguments,
+                         '-m', model_name,
+                         '-t', theory_name] + config.arguments,
+                        time_limit=TIME_LIMIT,
+                        memory_limit=MEMORY_LIMIT)
+        run.add_command('run-counter',
+                        [RUN_SCRIPT_DIR+'/count-ground-actions.py',
+                         '-m', model_name,
+                         '-t', theory_with_actions,
+                         '-e'],
                         time_limit=TIME_LIMIT,
                         memory_limit=MEMORY_LIMIT)
         run.set_property('domain', task.domain)
@@ -153,53 +149,38 @@ def combine_larger_domains(run):
         return run
     return run
 
+def model_computation_finished(run):
+    atoms = run.get('counter_actions')
+    if atoms is not None:
+        run['has_model'] = 1
+    else:
+        run['has_model'] = 0
+    return run
+
+def pipeline_time(run):
+    gringo = run.get('gringo_time')
+    newground = run.get('newground_time')
+    solved = run.get('has_model')
+    if solved == 1 and gringo is not None and newground is not None:
+        run['added_time'] = gringo + newground
+    else:
+        run['added_time'] = None
+    return run
 
 def domain_as_category(run1, run2):
     # run2['domain'] has the same value, because we always
     # compare two runs of the same problem.
     return run1["domain"]
 
-
-def found_model(run):
-    atoms = run.get('atoms')
-    if atoms is not None:
-        if atoms > 0:
-            run['has_model'] = 1
-        else:
-            run['has_model'] = 0
-    else:
-        run['has_model'] = 0
-    return run
-
 # Make a report.
 exp.add_report(
-    BaseReport(attributes=ATTRIBUTES + ['has_model'],
-               filter=[combine_larger_domains,found_model]),
+    BaseReport(attributes=ATTRIBUTES + ['has_model', 'added_time'],
+               filter=[combine_larger_domains, model_computation_finished, pipeline_time]),
     outfile='report.html')
 
-
 exp.add_report(
-    BaseReport(attributes=['total_time', 'has_model'],
-               filter=[combine_larger_domains,found_model]),
-    outfile='correct-value-report.html')
-
-exp.add_report(ScatterPlotReport(attributes=['total_time'],
-                                 filter_algorithm=['gringo-no-actions', 'gringo-no-actions+lpopt'],
-                                 filter=[combine_larger_domains],
-                                 get_category=domain_as_category,
-                                 scale='symlog',
-                                 format='tex'),
-               outfile='total-time-no-actions.tex')
-
-
-
-exp.add_report(ScatterPlotReport(attributes=['total_time'],
-                                 filter_algorithm=['gringo-ground-actions', 'gringo-ground-actions+lpopt'],
-                                 filter=[combine_larger_domains],
-                                 get_category=domain_as_category,
-                                 scale='symlog',
-                                 format='tex'),
-               outfile='total-time-ground-actions.tex')
+    BaseReport(attributes=ATTRIBUTES),
+    outfile='count-org-synthesis.html')
 
 # Parse the commandline and run the specified steps.
 exp.run_steps()
