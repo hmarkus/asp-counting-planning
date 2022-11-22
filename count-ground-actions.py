@@ -164,9 +164,9 @@ class ActionsCounter:
         inpt.writelines(self._model)
         inpt.write(prog)
         #debug output
-        f=open(pred, "w")
-        f.write(inpt.getvalue())
-        f.close()
+        #f=open(pred, "w")
+        #f.write(inpt.getvalue())
+        #f.close()
         with (subprocess.Popen([lpcnt], stdin=subprocess.PIPE, stdout=subprocess.PIPE)) as proc:
             #print()
             print("% counting {} on {} facts (model) and {} rules (theory + encoding for counting)".format(pred, len(self._model), nbrules))
