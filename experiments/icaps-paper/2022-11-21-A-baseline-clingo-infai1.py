@@ -67,9 +67,7 @@ if REMOTE:
              'visitall-multidimensional-5-dim-visitall-FAR-g2',
              'visitall-multidimensional-5-dim-visitall-FAR-g3']
     ENV = BaselSlurmEnvironment(
-        partition='infai_2',
-        memory_per_cpu="6G",
-        extra_options='#SBATCH --cpus-per-task=3',
+        partition='infai_1',
         setup="%s\n%s" % (
             BaselSlurmEnvironment.DEFAULT_SETUP,
             "source /infai/blaas/virtualenvs/newground/bin/activate\n"),
@@ -81,12 +79,13 @@ else:
     ENV = LocalEnvironment(processes=4)
 
 TIME_LIMIT = 1800
-MEMORY_LIMIT = 16384
+MEMORY_LIMIT = 3872
 
 ATTRIBUTES=['ground',
             'total_time',
             'model_size',
-            'atoms']
+            'atoms',
+            'run_dir']
 
 # Create a new experiment.
 exp = Experiment(environment=ENV)
@@ -96,15 +95,15 @@ exp.add_parser('parser.py')
 
 CONFIGS = []
 
-for grounder in ['newground']:
-    for ineq in [True, False]:
-        extra = []
-        if ineq:
-            extra = ['--inequality-rules']
-        CONFIGS = CONFIGS + [Configuration(f'{"ineq-" if ineq else ""}{grounder}-ground-actions', ['--ground-actions', '--grounder', grounder] + extra),
-                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-ground-actions+lpopt', ['--ground-actions', '--lpopt-preprocessor', '--grounder', grounder] + extra),
-                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-no-actions', ['--grounder', grounder] + extra),
-                             Configuration(f'{"ineq-" if ineq else ""}{grounder}-no-actions+lpopt', ['--lpopt-preprocessor', '--grounder', grounder] + extra)]
+for grounder in ['clingo']:
+    CONFIGS = CONFIGS + [Configuration(f'{grounder}-ground-actions', ['--ground-actions', '--grounder', grounder, '--suppress-output']),
+                         Configuration(f'{grounder}-ground-actions+lpopt', ['--ground-actions', '--lpopt-preprocessor', '--grounder', grounder, '--suppress-output']),
+                         Configuration(f'{grounder}-ground-actions+fd', ['--ground-actions', '--fd-split', '--grounder', grounder, '--suppress-output']),
+                         Configuration(f'{grounder}-ground-actions+fd-htd', ['--ground-actions', '--htd-split', '--grounder', grounder, '--suppress-output']),
+                         Configuration(f'{grounder}-no-actions', ['--grounder', grounder, '--suppress-output']),
+                         Configuration(f'{grounder}-no-actions+lpopt', ['--lpopt-preprocessor', '--grounder', grounder, '--suppress-output']),
+                         Configuration(f'{grounder}-no-actions+fd', ['--fd-split', '--grounder', grounder, '--suppress-output']),
+                         Configuration(f'{grounder}-no-actions+fd-htd', ['--htd-split', '--grounder', grounder, '--suppress-output'])]
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:
@@ -158,12 +157,14 @@ def domain_as_category(run1, run2):
     # compare two runs of the same problem.
     return run1["domain"]
 
+
 def found_model(run):
     atoms = run.get('atoms')
     if atoms is not None:
-        run['has_model'] = 1
-        if atoms == 0:
-            print(run['id'], "had 0 atoms in the model!")
+        if atoms > 0:
+            run['has_model'] = 1
+        else:
+            run['has_model'] = 0
     else:
         run['has_model'] = 0
     return run
@@ -171,9 +172,14 @@ def found_model(run):
 # Make a report.
 exp.add_report(
     BaseReport(attributes=ATTRIBUTES + ['has_model'],
-               filter=[combine_larger_domains, found_model]),
+               filter=[combine_larger_domains,found_model]),
     outfile='report.html')
 
+
+exp.add_report(
+    BaseReport(attributes=['total_time', 'has_model'],
+               filter=[combine_larger_domains,found_model]),
+    outfile='correct-value-report.html')
 
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
                                  filter_algorithm=['gringo-no-actions', 'gringo-no-actions+lpopt'],
@@ -182,6 +188,7 @@ exp.add_report(ScatterPlotReport(attributes=['total_time'],
                                  scale='symlog',
                                  format='tex'),
                outfile='total-time-no-actions.tex')
+
 
 
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
