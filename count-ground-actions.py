@@ -63,12 +63,15 @@ class ActionsCounter:
                     ip = ip + 1
                 rule.write(head[1] + " :- ")
                 ln = 0
+                written = False 
                 #typelist.write("1 {{ {0} : ".format(head[0]))
                 for p in rl.finditer(l, len(head[0])):
-                    if ln > 0:
+                    if written: #not skip and ln > 0:
                         rule.write(",")
+                    written = False
                     body = self.getPred(p)
-                    assert(not body is None)
+                    #print(body)
+                    assert(body is not None)
                     if body[1].startswith("type"):
                         #if ln > 0:
                         #    typelist.write(",")
@@ -80,14 +83,19 @@ class ActionsCounter:
                             if self._output:
                                 prog.write("#show g_{0}/1.\n".format(body[2]))
                         rule.write(body[0])
+                        written = True
                     else: #get predicate and predicate with copy vars
                         cnt = cnt + 1
                         pnam = "p_{}{}".format(cnt,body[1])
+                        #rule.write(pcopy)
                         pred = body[0] # "{}({})".format(body[1], ",".join(body[2:]))
                         #if "!=" in body[0]:
                         #    pred = "{}!=({})".format(body[1], ",".join(body[2:]))
                         ip = 0
                         #print(body[2:])
+                        if body[1] != "!=":
+                            written = True 
+                            rule.write("p_{0}{1}".format(cnt, pred))
                         #if body[1] not in done:
                         if self._output and body[1] != "!=":
                             for pb in body[2:]:
@@ -97,11 +105,7 @@ class ActionsCounter:
                                     #self._preds[pnam] = ps
                                     self._preds[(pnam,ip)] = self._vars[pb]
                                 ip = ip + 1
-                            #done.add(body[1])
-                        #else:
-                        #    print("DONE ALREADY ",done, body)
                         cpred = "{}({}_c)".format(body[1], "_c,".join(body[2:]))
-                        rule.write("p_{}{}".format(cnt, pred))
                         if self._extoutput:
                             if body[1] == "!=":
                                 prog.write(":- {0}".format(pred.replace("!", "")))
