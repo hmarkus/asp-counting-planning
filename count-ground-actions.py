@@ -54,12 +54,12 @@ class ActionsCounter:
                 #print(head)
                 ip = 0
                 self._preds = {}
-                _vars = {}
+                self._vars = {}
                 _types = {}
                 _pos = set()
                 #done = set()
                 for pb in head[2:]:
-                    _vars[pb] = ip
+                    self._vars[pb] = ip
                     ip = ip + 1
                 rule.write(head[1] + " :- ")
                 ln = 0
@@ -77,6 +77,8 @@ class ActionsCounter:
                             for t in body[2]:
                                 _types[t] = body[0]
                             prog.write("1 {{ g_{0}({0}) : {1} }} 1.\n".format(body[2], body[0]))
+                            if self._output:
+                                prog.write("#show g_{0}/1.\n".format(body[2]))
                         rule.write(body[0])
                     else: #get predicate and predicate with copy vars
                         cnt = cnt + 1
@@ -87,21 +89,19 @@ class ActionsCounter:
                         ip = 0
                         #print(body[2:])
                         #if body[1] not in done:
-                        if self._output:
+                        if self._output and body[1] != "!=":
                             for pb in body[2:]:
-                                if _vars[pb] not in _pos: #has_key(self._vars[p]):
-                                    _pos.add(_vars[pb]) # (pnam, ip)
+                                if self._vars[pb] not in _pos: #has_key(self._vars[p]):
+                                    _pos.add(self._vars[pb]) # (pnam, ip)
                                     #ps = self._preds[pnam] if ip > 0 {} else
                                     #self._preds[pnam] = ps
-                                    self._preds[pnam + "," + str(ip)] = _vars[pb]
+                                    self._preds[(pnam,ip)] = self._vars[pb]
                                 ip = ip + 1
                             #done.add(body[1])
                         #else:
                         #    print("DONE ALREADY ",done, body)
                         cpred = "{}({}_c)".format(body[1], "_c,".join(body[2:]))
                         rule.write("p_{}{}".format(cnt, pred))
-                        if self._output:
-                            prog.write("#show p_{1}{0}/{2}.\n".format(body[1], cnt, len(body[2:])))
                         if self._extoutput:
                             if body[1] == "!=":
                                 prog.write(":- {0}".format(pred.replace("!", "")))
@@ -110,12 +110,14 @@ class ActionsCounter:
                             for pb in body[2:]:
                                 prog.write(", g_{0}({0})".format(pb))
                             prog.write(".\n")
-                        elif self._gen_choices:
+                        elif self._gen_choices and body[1] != "!=":
                             prog.write("1 {{ p_{1}{0} : {0} }} 1.\n".format(pred, cnt))
-                        else:
+                        elif body[1] != "!=":
                             prog.write("p_{1}{0} :- not n_{1}{0}, {0}. n_{1}{0} :- not p_{1}{0}, {0}.\n".format(pred, cnt))
                             for par in body[2:]:
                                 prog.write(":- p_{3}{0}, p_{3}{1}, {2} > {2}_c.\n".format(pred, cpred, par, cnt))
+                        if not self._extoutput and self._output and body[1] != "!=":
+                            prog.write("#show p_{1}{0}/{2}.\n".format(body[1], cnt, len(body[2:])))
                     ln = ln + 1
                 l = 0
                 if not self._extoutput:
@@ -140,14 +142,17 @@ class ActionsCounter:
 
     def countActions(self, stream):
         cnt = 0
+        self._bound = False
         lowerb = False
         for cnts, nbrules, predicate in stream:
             res = self.countAction(cnts, nbrules, predicate)
             if not res is None:
                 cnt += res
             else:
+                self._bound = True
+            if self._bound:
                 lowerb = True
-            print("# of actions (intermediate result): {}{}".format(cnt, "+" if lowerb else ""))
+            print("% # of actions (intermediate result): {}{}".format(cnt, "+" if lowerb else ""))
         return "{}{}".format(cnt, "+" if lowerb else "")
 
     def countAction(self, prog, nbrules, pred):
@@ -159,12 +164,12 @@ class ActionsCounter:
         inpt.writelines(self._model)
         inpt.write(prog)
         #debug output
-        #f=open(pred, "w")
-        #f.write(inpt.getvalue())
-        #f.close()
+        f=open(pred, "w")
+        f.write(inpt.getvalue())
+        f.close()
         with (subprocess.Popen([lpcnt], stdin=subprocess.PIPE, stdout=subprocess.PIPE)) as proc:
             #print()
-            print("counting {} on {} facts (model) and {} rules (theory + encoding for counting)".format(pred, len(self._model), nbrules))
+            print("% counting {} on {} facts (model) and {} rules (theory + encoding for counting)".format(pred, len(self._model), nbrules))
             #print(prog)
             #out, err = proc.communicate(inpt.getvalue().encode())
             #cnt.writelines(proc.communicate((inpt.getvalue()).encode())[0].decode())
@@ -177,7 +182,11 @@ class ActionsCounter:
             #return(cnt.getvalue())
             res = None
             #print(proc.stdout.read())
-            r = self.generateRegEx("^p_")
+            r = None
+            if self._extoutput:
+                r = self.generateRegEx("^g_")
+            else:
+                r = self.generateRegEx("^p_")
             for line in proc.stdout:
                 #print(line)
                 line = line.decode()
@@ -189,19 +198,28 @@ class ActionsCounter:
                 elif line.startswith("Models       : "):
                     pos = -1 if line.find("+") > -1 else len(line)
                     res = int(line[15:pos])
-                elif self._output and line.startswith("p_"):
+                    if pos == -1:
+                        self._bound = True
+                elif self._output and line.startswith("p_") or line.startswith("g_"):
                     ps = [None] * len(self._preds)
-                    #print(line,self._preds)
-                    for l in line.split(" "):
-                        atom = self.getPred(r.match(l))
-                        if not atom is None:
-                            ip = 0
-                            for px in atom[2:]:
-                                k = atom[1] + "," + str(ip)
-                                #print(self._preds,k,px)
-                                if k in self._preds.keys():
-                                    ps[self._preds[k]] = px
-                                ip = ip + 1
+                    if line.startswith("p_"): # or line.startswith("g_"):
+                        #print(line,self._preds)
+                        for l in line.split(" "):
+                            atom = self.getPred(r.match(l))
+                            if not atom is None:
+                                ip = 0
+                                for px in atom[2:]:
+                                    k = (atom[1],ip)
+                                    #print(self._preds,k,px)
+                                    if k in self._preds.keys():
+                                        ps[self._preds[k]] = px
+                                    ip = ip + 1
+                    elif line.startswith("g_"):
+                        #print(line)
+                        for l in line.split(" "):
+                            atom = self.getPred(r.match(l))
+                            if not atom is None: # only arity one
+                                ps[self._vars[atom[1][2:]]] = atom[2]
                     #print(ps)
                     assert(None not in ps)
                     print("{}({})".format(pred, ",".join(ps)))
@@ -243,4 +261,6 @@ if __name__ == "__main__":
     #print("\n".join(a.parseActions()))
 
     a = ActionsCounter(open(args.model), open(args.theory), args.choices, args.output, args.extendedOutput)
-    print("# of actions: {}".format(a.countActions(a.parseActions())))
+    print("% # of actions: {}".format(a.countActions(a.parseActions())))
+    if a._bound:
+        exit(10)
