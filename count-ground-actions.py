@@ -162,7 +162,7 @@ class ActionsCounter:
     def countAction(self, prog, nbrules, pred):
         #cnt = io.StringIO()
         #assert(os.environ.get('GRINGO_BIN_PATH') is not None) # gringo is used by lpcnt
-        lpcnt = os.environ.get('LPCNT_BIN_PATH')
+        lpcnt = os.environ.get(args.counter_path)
         assert(lpcnt is not None)
         inpt = io.StringIO()
         inpt.writelines(self._model)
@@ -248,9 +248,6 @@ class ActionsCounter:
 # for quick testing (use case: direct translator)
 # todo exception handling for io, signal handling, ...
 if __name__ == "__main__":
-    assert(os.environ.get('LPCNT_AUX_PATH') is not None)
-    assert(os.environ.get('LPCNT_BIN_PATH') is not None)
-    assert(os.environ.get('LPOPT_BIN_PATH') is not None)
     #with (subprocess.Popen([os.environ.get('LPCNT_AUX_PATH') + "/set_env_vars.sh"])) as proc:
     #    pass
     parser = argparse.ArgumentParser(description='Count the # of actions that would be contained in a full grounding. Requires to set env variable LPCNT_AUX_PATH containing auxiliary binaries used in lpcnt AND executing source $LPCNT_AUX_PATH/set_env_vars.sh first (or setting those environment variables right)')
@@ -259,7 +256,12 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--choices', required=False, action="store_const", const=True, default=False, help="Enables the generation of choice rules.")
     parser.add_argument('-o', '--output', required=False, action="store_const", const=True, default=False, help="Enables the output of actions.")
     parser.add_argument('-e', '--extendedOutput', required=False, action="store_const", const=True, default=False, help="Enables the extended output of actions.")
+    parser.add_argument('--counter-path', required=False, default="LPCNT_BIN_PATH", help="Environment value used for lpcnt. Allows to test different lpcnt versions.")
     args = parser.parse_args()
+
+    assert(os.environ.get('LPCNT_AUX_PATH') is not None)
+    assert(os.environ.get(args.counter_path) is not None)
+    assert(os.environ.get('LPOPT_BIN_PATH') is not None)
 
     #a = ActionsCounter(open("output.cnt"), open("output.theory-full"))
     #print("\n".join(a.parseActions()))
