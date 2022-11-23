@@ -92,14 +92,10 @@ exp.add_parser('parser.py')
 exp.add_parser('counter-parser.py')
 
 CONFIGS = []
-LPCNT_VERSIONS = [('lpgrnd', 'LPGRND_BIN_PATH'),
-                  ('lpcnt_nopp', 'LPCNT_NOPP_BIN_PATH'),
-                  ('lpcnt_omni', 'LPCNT_OMNI_BIN_PATH')]
+LPCNT_VERSIONS = [('lpcnt', 'LPCNT_BIN_PATH')]
 for lpcnt, path in LPCNT_VERSIONS:
-        CONFIGS.append(Configuration(f'{lpcnt}-c-e', ['-c', '-e']+['--counter-path', path]))
-        CONFIGS.append(Configuration(f'{lpcnt}-c', ['-c']+['--counter-path', path]))
-        CONFIGS.append(Configuration(f'{lpcnt}-e', ['-e']+['--counter-path', path]))
-        CONFIGS.append(Configuration(f'{lpcnt}', []+['--counter-path', path]))
+        CONFIGS.append(Configuration(f'{lpcnt}', []))
+        CONFIGS.append(Configuration(f'{lpcnt}-ineq', ['--inequality-rules']))
 
 # Create one run for each instance and each configuration
 for config in CONFIGS:
@@ -114,13 +110,13 @@ for config in CONFIGS:
                         [RUN_SCRIPT_DIR+'/generate-asp-model.py', '-i', task.problem_file,
                          '-m', model_name,
                          '-t', theory_name,
-                         '--grounder', 'gringo', '--lpopt-preprocessor'],
+                         '--grounder', 'gringo', '--lpopt-preprocessor'] + config.arguments,
                         time_limit=TIME_LIMIT,
                         memory_limit=MEMORY_LIMIT)
         run.add_command('run-counter',
                         [RUN_SCRIPT_DIR+'/count-ground-actions.py',
                          '-m', model_name,
-                         '-t', theory_with_actions] + config.arguments,
+                         '-t', theory_with_actions] + ['-e', '--counter-path', path],
                         time_limit=TIME_LIMIT,
                         memory_limit=MEMORY_LIMIT)
         run.set_property('domain', task.domain)
