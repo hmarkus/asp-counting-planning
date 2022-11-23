@@ -46,7 +46,7 @@ if REMOTE:
              'logistics-large-simple',
              'organic-synthesis-alkene',
              'organic-synthesis-MIT',
-             'organic-synthesis-original'
+             'organic-synthesis-original',
              'pipesworld-tankage-nosplit',
              'rovers-large-simple',
              'visitall-multidimensional-3-dim-visitall-CLOSE-g1',
