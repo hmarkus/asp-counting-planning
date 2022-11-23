@@ -182,7 +182,7 @@ exp.add_report(
     outfile='correct-value-report.html')
 
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
-                                 filter_algorithm=['gringo-no-actions', 'gringo-no-actions+lpopt'],
+                                 filter_algorithm=['clingo-no-actions', 'clingo-no-actions+lpopt'],
                                  filter=[combine_larger_domains],
                                  get_category=domain_as_category,
                                  scale='symlog',
