@@ -6,6 +6,8 @@ import io
 import subprocess
 import utils
 import argparse
+import multiprocessing
+import signal
 
 class ActionsCounter:
     #model_file:  the model of the planning task without grounding actions
@@ -70,10 +72,10 @@ class ActionsCounter:
                         rule.write(",")
                     written = False
                     body = self.getPred(p)
-                    for pb in body[2:]:
-                        if not pb in self._vars.keys():
-                            self._vars[pb] = ip
-                            ip = ip + 1
+                    #for pb in body[2:]:
+                    #    if not pb in self._vars.keys():
+                    #        self._vars[pb] = ip
+                    #        ip = ip + 1
                     assert(body is not None)
                     if body[1].startswith("pddl_type"):
                         #if ln > 0:
@@ -101,8 +103,8 @@ class ActionsCounter:
                             rule.write("p_{0}{1}".format(cnt, pred))
                         #if body[1] not in done:
                         if self._output and body[1] != "!=":
-                            for pb in body[2:]:
-                                if self._vars[pb] not in _pos: #has_key(self._vars[p]):
+                            for pb in body[2:]: #exclude body-only vars
+                                if pb in self._vars and self._vars[pb] not in _pos: #has_key(self._vars[p]):
                                     _pos.add(self._vars[pb]) # (pnam, ip)
                                     #ps = self._preds[pnam] if ip > 0 {} else
                                     #self._preds[pnam] = ps
@@ -228,11 +230,11 @@ class ActionsCounter:
                         for l in line.split(" "):
                             atom = self.getPred(r.match(l))
                             #print(self._preds,self._vars)
-                            if not atom is None: # only arity one
+                            if not atom is None and atom[1][2:] in self._vars: # only arity one
                                 #print(self._vars[atom[1][2:]])
                                 ps[self._vars[atom[1][2:]]] = atom[2]
                     #print(ps)
-                    print("{}({})".format(pred, ",".join([i for i in ps if i is not None])))
+                    print("{}({})".format(pred, ",".join(ps))) #[i for i in ps if i is not None])))
             proc.stdout.close()
         return res
 
@@ -249,6 +251,11 @@ class ActionsCounter:
             #prog.writelines(proc.stdout.readlines())
         #print("DECOMPOSE {} {}".format(rules, prog.getvalue()))
         return prog.getvalue(), len(prog.getvalue().split("\n"))
+
+def sigterm(sig,frame):
+    for child in multiprocessing.active_children():
+        child.terminate()
+    exit(0)
 
 
 # for quick testing (use case: direct translator)
@@ -271,6 +278,10 @@ if __name__ == "__main__":
 
     #a = ActionsCounter(open("output.cnt"), open("output.theory-full"))
     #print("\n".join(a.parseActions()))
+
+    
+    signal.signal(signal.SIGINT, sigterm)
+    signal.signal(signal.SIGTERM, sigterm)
 
     a = ActionsCounter(open(args.model), open(args.theory), args.choices, args.output, args.extendedOutput)
     print("% # of actions: {}".format(a.countActions(a.parseActions())))
