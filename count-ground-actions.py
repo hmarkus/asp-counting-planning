@@ -63,7 +63,7 @@ class ActionsCounter:
                     ip = ip + 1
                 rule.write(head[1] + " :- ")
                 ln = 0
-                written = False 
+                written = False
                 #typelist.write("1 {{ {0} : ".format(head[0]))
                 for p in rl.finditer(l, len(head[0])):
                     if written: #not skip and ln > 0:
@@ -72,7 +72,7 @@ class ActionsCounter:
                     body = self.getPred(p)
                     #print(body)
                     assert(body is not None)
-                    if body[1].startswith("type"):
+                    if body[1].startswith("pddl_type"):
                         #if ln > 0:
                         #    typelist.write(",")
                         #typelist.write(body[0])
@@ -94,7 +94,7 @@ class ActionsCounter:
                         ip = 0
                         #print(body[2:])
                         if body[1] != "!=":
-                            written = True 
+                            written = True
                             rule.write("p_{0}{1}".format(cnt, pred))
                         #if body[1] not in done:
                         if self._output and body[1] != "!=":
