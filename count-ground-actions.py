@@ -205,8 +205,9 @@ class ActionsCounter:
                     if pos == -1:
                         self._bound = True
                 elif self._output and line.startswith("p_") or line.startswith("g_"):
-                    ps = [None] * len(self._preds)
+                    ps = None
                     if line.startswith("p_"): # or line.startswith("g_"):
+                        ps = [None] * len(self._preds)
                         #print(line,self._preds)
                         for l in line.split(" "):
                             atom = self.getPred(r.match(l))
@@ -219,10 +220,13 @@ class ActionsCounter:
                                         ps[self._preds[k]] = px
                                     ip = ip + 1
                     elif line.startswith("g_"):
+                        ps = [None] * len(self._vars)
                         #print(line)
                         for l in line.split(" "):
                             atom = self.getPred(r.match(l))
+                            #print(self._preds,self._vars)
                             if not atom is None: # only arity one
+                                #print(self._vars[atom[1][2:]])
                                 ps[self._vars[atom[1][2:]]] = atom[2]
                     #print(ps)
                     assert(None not in ps)
