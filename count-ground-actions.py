@@ -70,7 +70,10 @@ class ActionsCounter:
                         rule.write(",")
                     written = False
                     body = self.getPred(p)
-                    #print(body)
+                    for pb in body[2:]:
+                        if not pb in self._vars.keys():
+                            self._vars[pb] = ip
+                            ip = ip + 1
                     assert(body is not None)
                     if body[1].startswith("pddl_type"):
                         #if ln > 0:
@@ -229,8 +232,7 @@ class ActionsCounter:
                                 #print(self._vars[atom[1][2:]])
                                 ps[self._vars[atom[1][2:]]] = atom[2]
                     #print(ps)
-                    assert(None not in ps)
-                    print("{}({})".format(pred, ",".join(ps)))
+                    print("{}({})".format(pred, ",".join([i for i in ps if i is not None])))
             proc.stdout.close()
         return res
 
