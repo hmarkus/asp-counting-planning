@@ -189,15 +189,14 @@ exp.add_report(ScatterPlotReport(attributes=['total_time'],
                                  format='tex'),
                outfile='total-time-no-actions.tex')
 
-
-
 exp.add_report(ScatterPlotReport(attributes=['total_time'],
-                                 filter_algorithm=['gringo-ground-actions', 'gringo-ground-actions+lpopt'],
+                                 filter_algorithm=['clingo-ground-actions', 'clingo-ground-actions+lpopt'],
                                  filter=[combine_larger_domains],
                                  get_category=domain_as_category,
                                  scale='symlog',
                                  format='tex'),
                outfile='total-time-ground-actions.tex')
+
 
 # Parse the commandline and run the specified steps.
 exp.run_steps()
