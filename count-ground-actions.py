@@ -85,8 +85,8 @@ class ActionsCounter:
                             for t in body[2]:
                                 _types[t] = body[0]
                             prog.write("1 {{ g_{0}({0}) : {1} }} 1.\n".format(body[2], body[0]))
-                            if self._output:
-                                prog.write("#show g_{0}/1.\n".format(body[2]))
+                            #if self._output:
+                            prog.write("#show g_{0}/1.\n".format(body[2]))
                         rule.write(body[0])
                         written = True
                     else: #get predicate and predicate with copy vars
@@ -280,8 +280,8 @@ if __name__ == "__main__":
     #print("\n".join(a.parseActions()))
 
     
-    signal.signal(signal.SIGINT, sigterm)
     signal.signal(signal.SIGTERM, sigterm)
+    signal.signal(signal.SIGINT, sigterm)
 
     a = ActionsCounter(open(args.model), open(args.theory), args.choices, args.output, args.extendedOutput)
     print("% # of actions: {}".format(a.countActions(a.parseActions())))
