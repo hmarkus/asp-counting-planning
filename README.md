@@ -33,7 +33,7 @@ while in the root directory of the repository.
 
 ## Usage
 
-To run the program, execute
+To run the program generate-asp-model, execute
 
 ```bash
 $ ./generate-asp-model.py -i /path/to/instance.pddl [-m MODEL-OUTPUT] [-t THEORY-OUTPUT]
@@ -64,22 +64,43 @@ There are some extra options one can use:
   based on the hypertree decompositions of the rule bodies. It expects
   `BalancedGo` to be on the `PATH`.
 
-to install the necessary packages.
 
+To run the count-ground-actions program for upper-bounding the number of action atoms
+in the grounding and for computing alternative groundings, execute
 
-### Requirements
+```bash
+$ ./ count-ground-actions.py -m MODEL-OUTPUT -t THEORY-OUTPUT-with-ground-actions
+```
 
-- Python3.7 or newer (if you do not want to use `newground` then Python 3.6
-  should also work)
-- You must have `gringo` and/or `newground` on the `PATH`.
-- To use `lpopt`, you must also have an environment variable called
-  `LPOPT_BIN_PATH` to point to the binary file of `lpopt`
+where `MODEL-OUTPUT` is the path to the MODEL-OUTPUT obtained with a call to the 
+program above and `THEORY-OUTPUT-with-ground-actions` is the path to the THEORY-OUTPUT 
+obtained by the same call, but additionally containing the argument `--ground-actions`. 
 
+The program will count the number of expected action instantiations in a grounding
+for each action individually. Also, the program is capable of outputting alternative
+encodings for grounding (see options `--output` and `--extendedOutput`).
+
+There are some extra options that one can optionally turn on:
+
+- `--choices`: Use ASP choice rules, which is an alternative encoding that
+  directly uses ASP choices, instead of SAT-like rules for guessing / deciding 
+  whether an action is contained in the grounding.   
+- `--output`: Compute the alternative grounding encoding and write it to stdout.
+- `--extendedOutput`: Compute an alternative (extended) grounding encoding and 
+  write it to stdout.
+- `--counter-path`: Set the used counting solver environment variable,
+  giving the execution path within the path specified by the environment variable `LPCNT_AUX_PATH`.
+   This option expects an environment variable called `LPCNT_AUX_PATH` and
+  that the path `LPCNT_AUX_PATH` contains the file given by the value of the passed environment variable. (default: `LPCNT_BIN_PATH`)
 
 
 ### Requirements for Counting
 
+- Python3.7 or newer
+- You must have `gringo` on the `PATH`.
 - Add environment variable `LPCNT_AUX_PATH` pointing to
   `/path/to/repo/build/bdist.linux-x86_64`
 - Add environment variable `GRINGO_BIN_PATH` pointing to the desired gringo
   installation
+- Add environment variable `LPCNT_BIN_PATH` pointing to the desired counting 
+  solving script. 
