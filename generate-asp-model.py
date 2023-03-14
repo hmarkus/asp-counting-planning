@@ -81,6 +81,9 @@ if __name__ == '__main__':
         extra_options=['--output', 'text']
     elif args.grounder == 'newground':
         extra_options=['--no-show', '--ground']
+    elif args.grounder == 'idlv':
+        print("Output below refers to Gringo for legacy reasons. The selected grounder is I-DLV.")
+        extra_options=['--t']
 
     use_clingo = args.grounder == 'clingo'
 
@@ -96,7 +99,7 @@ if __name__ == '__main__':
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))
-            print("Number of atoms (not actions):", len(grounder_output.split('\n')) - 1) #Gringo outputs a stupid empty line at the end, so we subtract that
+            print("Number of atoms (not actions):", len(grounder_output.split('\n')) - 1)
             if args.grounder == 'newground':
                 with open(args.model_output, 'r') as model_file:
                     print(model_file.read())
