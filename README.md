@@ -12,7 +12,7 @@ grounding, which is slower but can ground larger tasks. For details, see Corrêa
 
 ## Installation
 
-We recommend using a Python virtual environment. You need to use Python 3.7>= to execute the scripts properly.  Once inside the virtual
+We recommend using a Python virtual environment. You need to use Python >= 3.7 to execute the scripts.  Once inside the virtual
 environment, you can run
 
 ```bash
@@ -31,11 +31,11 @@ grounder you want to use in your PATH (see below).
 ## Basic Usage
 
 There are two main scripts in the repo: `generate-asp-model.py` and
-`count-ground-actions.py`. The first one simply encoded the task as a Datalog
+`count-ground-actions.py`. The first one simply encodes the task as a Datalog
 program (with some options) and then grounds it using some off-the-shelf
 grounder; the second one counts or grounds (depending on the parameters) the
-*actions* of the ask given a set of relaxed-reachable atoms. Usually, to run
-`count-ground-actions.py`, you need to have the result `generate-asp-model.py`
+*actions* of the task given a set of relaxed-reachable atoms. Usually, to run
+`count-ground-actions.py`, you need to have the output model from `generate-asp-model.py`
 stored.
 
 To run the program `generate-asp-model`, execute
@@ -44,14 +44,16 @@ To run the program `generate-asp-model`, execute
 $ ./generate-asp-model.py -i /path/to/instance.pddl [-m MODEL-OUTPUT] [-t THEORY-OUTPUT]
 ```
 
-where `/path/to/instance.pddl` is the path to a *PDDL instance* (not the domain
-file!). It is necessary that there is a PDDL domain file in the same directory
-as `instance.pddl`, though. The script will infer the domain file automatically.
+where `/path/to/instance.pddl` is the path to a *PDDL instance*. It is necessary
+that there is a PDDL domain file in the same directory as `instance.pddl`,
+though. The script will infer the domain file automatically or you can pass it
+with parameter `-d`.
 
 The program will generate the Datalog encoding corresponding to the PDDL task
-and ground it using gringo. The Datalog file will be saved in `MODEL-OUTPUT`
-(default: `output.theory`); the canonical model (together with any other output
-from the grounder) will be saved in `THEORY-OUTPUT` (default: `output.model`).
+and ground it using some selected grounder (default: `gringo`). The Datalog file
+will be saved in `MODEL-OUTPUT` (default: `output.theory`); the canonical model
+(together with any other output from the grounder) will be saved in
+`THEORY-OUTPUT` (default: `output.model`).
 
 There are some extra options one can use:
 
@@ -74,15 +76,15 @@ To run the `count-ground-actions program` for upper-bounding the number of
 action atoms in the grounding and for computing alternative groundings, you
 must set the following environment variables:
 
-- variable `LPCNT_AUX_PATH` pointing to `/path/to/repo/build/bdist.linux-x86_64`.
-- variable `GRINGO_BIN_PATH` pointing to the desired `gringo` installation.
-- variable `CLINGO_BIN_PATH` pointing to the desired `clingo` installation.
-- variable `LPCNT_BIN_PATH` pointing to the desired counting/solving script.
+- `LPCNT_AUX_PATH` pointing to `/path/to/repo/build/bdist.linux-x86_64`.
+- `GRINGO_BIN_PATH` pointing to `gringo`.
+- `CLINGO_BIN_PATH` pointing to `clingo`.
+- `LPCNT_BIN_PATH` pointing to the desired counting/solving script.
 
 Then, you can execute
 
 ```bash
-$ ./ count-ground-actions.py -m MODEL-OUTPUT -t THEORY-WITH-ACTIONS [--choices] [--output] [--extendedOutput] [--counter-path SCRIPT]'
+$ ./ count-ground-actions.py -m MODEL-OUTPUT -t THEORY-WITH-ACTIONS [--choices] [--output] [--extendedOutput] [--counter-path SCRIPT]
 ```
 
 where `MODEL-OUTPUT` is the path to the `MODEL-OUTPUT` obtained with a call to
@@ -93,13 +95,14 @@ automatically generated with the name `output-with-actions.theory` by the
 
 The key to this program is the counting/solving script used. There are a few
 options inside the codebase:
-- `LPCNT`: simple counting script to count number of ground actions. Outputs
-  with `+` sign indicate a lower bound.
-- `LPGRND`: grounding via solving (see Corrêa et al. 2023). But note that this
-  script *does not output the model by default*. This is on purpose, because
-  some of the instances in the benchmark produce more than 10 GiB.
-- `LPGRND_IO`: same as `LPGRND` but outputting all ground actions. *Be very
-  careful to not produce very large files even in seemingly small examples.*
+- `LPCNT`: Simple counting script to count number of ground actions. Outputs
+  with `+` Sign indicate a lower bound.
+- `LPGRND`: Grounding via solving (see Corrêa et al. ICAPS 2023). But note that
+  this script *does not output the model by default*. This is on purpose because
+  some of the instances in the tested benchmark produce files larger than 10
+  GiB.
+- `LPGRND_IO`: Same as `LPGRND` but outputting all ground actions. *Be careful
+  to not produce very large files.*
 
 
 There are some extra options that one can optionally turn on:
@@ -113,9 +116,3 @@ There are some extra options that one can optionally turn on:
 - `--counter-path`: Set the used counting solver environment variable,
   giving the execution path within the path specified by the environment variable `VAR`.
    This option expects that `SCRIPT` points to a valid script for counting/solving. (default: `LPCNT_BIN_PATH`)
-
-
-### Requirements
-
-- Python3.7 or newer
-- You must have `gringo` on the `PATH`.
