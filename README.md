@@ -93,16 +93,21 @@ containing action predicates obtained by the same call above (this file is
 automatically generated with the name `output-with-actions.theory` by the
 `generate-asp-model.py` script).
 
-The key to this program is the counting/solving script used. There are a few
-options inside the codebase:
-- `LPCNT`: Simple counting script to count number of ground actions. Outputs
+The key to this program is the counting/solving script used. The ones used in
+the experiments (Corrêa et al. ICAPS 2023) are:
+- `lpcnt`: Simple counting script to count number of ground actions. Outputs
   with `+` Sign indicate a lower bound.
-- `LPGRND`: Grounding via solving (see Corrêa et al. ICAPS 2023). But note that
+- `lpgrnd`: Grounding via solving (see Corrêa et al. ICAPS 2023). But note that
   this script *does not output the model by default*. This is on purpose because
   some of the instances in the tested benchmark produce files larger than 10
   GiB.
-- `LPGRND_IO`: Same as `LPGRND` but outputting all ground actions. *Be careful
+- `lpgrnd_io`: Same as `lpgrnd` but outputting all ground actions. *Be careful
   to not produce very large files.*
+
+There are other counting scripts in the codebase (`lpcnt_nopp`, `lpcnt_omni`,
+`lpcnt_opt`). They are different configurations that might work better for
+specific instances. However, they were not used in the aforementioned
+experiments.
 
 
 There are some extra options that one can optionally turn on:
