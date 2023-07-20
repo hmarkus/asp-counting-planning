@@ -10,6 +10,8 @@ import tempfile
 import time
 import uuid
 
+from subprocess import Popen, PIPE
+
 from tarski.reachability import create_reachability_lp, run_clingo
 from tarski.theories import Theory
 from tarski.utils.command import silentremove, execute
@@ -30,6 +32,8 @@ if __name__ == '__main__':
         sys.exit()
 
     theory_output = args.theory_output
+    theory_output_with_actions = args.theory_output.replace(".theory", "-with-actions.theory")
+    print("Saving extra copy of theory with actions to %s" % theory_output_with_actions)
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if args.fd_split or args.htd_split:
@@ -45,10 +49,16 @@ if __name__ == '__main__':
                  instance_file, '--only-output-direct-program']
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
-        if args.inequality_rules:
-            command.extend(['--inequality-rules'])
         execute(command, stdout=theory_output)
         print("ASP model being copied to %s" % theory_output)
+
+    # Produces extra theory file with actions
+    command=[dir_path+'/src/translate/pddl_to_prolog.py', domain_file,
+                 instance_file, '--only-output-direct-program']
+    if args.inequality_rules:
+        command.extend(['--inequality-rules'])
+    execute(command, stdout=theory_output_with_actions)
+    print("ASP model *with actions* being copied to %s" % theory_output_with_actions)
 
 
     if args.lpopt_preprocessor:
@@ -71,17 +81,25 @@ if __name__ == '__main__':
         extra_options=['--output', 'text']
     elif args.grounder == 'newground':
         extra_options=['--no-show', '--ground']
+    elif args.grounder == 'idlv':
+        print("Output below refers to Gringo for legacy reasons. The selected grounder is I-DLV.")
+        extra_options=['--t']
 
     use_clingo = args.grounder == 'clingo'
 
-    with open(args.model_output, 'w+t') as output:
+    model_output = args.model_output
+    with open(model_output, 'w+t') as output:
         start_time = time.time()
         command = [grounder, theory_output] + extra_options
-        retcode = execute(command, stdout=output)
-        if retcode == 0:
+        process = Popen(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, text=True)
+        grounder_output = process.communicate()[0]
+        if not args.suppress_output:
+            print(grounder_output, file=output)
+        if process.returncode == 0 or (use_clingo and process.returncode == 30):
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))
+            print("Number of atoms (not actions):", len(grounder_output.split('\n')) - 1)
             if args.grounder == 'newground':
                 with open(args.model_output, 'r') as model_file:
                     print(model_file.read())
