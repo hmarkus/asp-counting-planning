@@ -157,7 +157,7 @@ class PrologProgram:
                 for condition in r.conditions:
                     relevant_goal_atom = copy.deepcopy(condition)
                     relevant_goal_atom.predicate = "relevant_"+condition.predicate
-                    self.facts.append(relevant_goal_atom)
+                    self.facts.append(Fact(relevant_goal_atom))
                 continue
             new_base_condition = copy.deepcopy(r.effect)
             new_base_condition.predicate = "relevant_" + r.effect.predicate
@@ -333,9 +333,9 @@ def translate(task):
     prog.normalize()
     if options.remove_action_predicates:
         prog.remove_action_predicates()
-    if options.only_output_direct_program:
-        if options.relevance_analysis or True:  # replace with option to perform relevance analysis
+        if options.relevance_analysis:  # replace with option to perform relevance analysis
             prog.relevance_analysis_atoms()
+    if options.only_output_direct_program:
         prog.dump_sanitized()
         sys.exit()
     prog.split_rules()

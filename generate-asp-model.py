@@ -38,6 +38,8 @@ if __name__ == '__main__':
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if args.fd_split or args.htd_split:
         command = [dir_path+'/src/translate/pddl_to_prolog.py', domain_file, instance_file]
+        if args.relevance_analysis:
+            command.extend(['--relevance-analysis'])
         if args.htd_split:
             command.extend(['--htd', '--only-output-htd-program'])
         if not args.ground_actions:
@@ -47,6 +49,8 @@ if __name__ == '__main__':
     else:
         command=[dir_path+'/src/translate/pddl_to_prolog.py', domain_file,
                  instance_file, '--only-output-direct-program']
+        if args.relevance_analysis:
+            command.extend(['--relevance-analysis'])
         if not args.ground_actions:
             command.extend(['--remove-action-predicates'])
         execute(command, stdout=theory_output)
