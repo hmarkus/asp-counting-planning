@@ -149,6 +149,26 @@ class PrologProgram:
                 final_rules.append(r)
         self.rules = final_rules
 
+    def relevance_analysis_atoms(self):
+        rules = set()
+        for r in self.rules:
+            rules.add(r)
+            if r.effect.predicate == "@goal-reachable":
+                for condition in r.conditions:
+                    relevant_goal_atom = copy.deepcopy(condition)
+                    relevant_goal_atom.predicate = "relevant_"+condition.predicate
+                    self.facts.append(relevant_goal_atom)
+                continue
+            new_base_condition = copy.deepcopy(r.effect)
+            new_base_condition.predicate = "relevant_" + r.effect.predicate
+            for condition in r.conditions:
+                head = copy.deepcopy(condition)
+                head.predicate = "relevant_" + condition.predicate
+                conditions = [new_base_condition, condition]
+                rules.add(Rule(conditions, head))
+        self.rules = rules
+
+
     def rename_free_variables(self):
         '''
         Use canonical names for free variables. The names are based on the
@@ -314,6 +334,8 @@ def translate(task):
     if options.remove_action_predicates:
         prog.remove_action_predicates()
     if options.only_output_direct_program:
+        if options.relevance_analysis or True:  # replace with option to perform relevance analysis
+            prog.relevance_analysis_atoms()
         prog.dump_sanitized()
         sys.exit()
     prog.split_rules()

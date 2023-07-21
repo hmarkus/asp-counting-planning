@@ -54,6 +54,10 @@ def parse_args():
         dest="remove_action_predicates", action="store_true",
         help="remove action predicates from logic program")
     argparser.add_argument(
+        "--relevance-analysis",
+        dest="relevance_analysis", action="store_true",
+        help="perform relevance analysis")
+    argparser.add_argument(
         "--htd",
         dest="htd", action="store_true",
         help="use hypertree decomposition to split logic program rules")
