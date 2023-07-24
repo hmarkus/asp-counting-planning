@@ -150,6 +150,10 @@ class PrologProgram:
         self.rules = final_rules
 
     def relevance_analysis_atoms(self):
+        intensional_predicates = set()
+        for r in self.rules:
+            intensional_predicates.add(r.effect.predicate)
+
         rules = set()
         for r in self.rules:
             if r.effect.predicate == "@goal-reachable":
@@ -160,10 +164,19 @@ class PrologProgram:
                 continue
             new_base_condition = copy.deepcopy(r.effect)
             new_base_condition.predicate = "relevant_" + r.effect.predicate
+            static_conditions = []
+            for condition in r.conditions:
+                if condition.predicate not in intensional_predicates:
+                    static_conditions.append(condition)
             for condition in r.conditions:
                 head = copy.deepcopy(condition)
                 head.predicate = "relevant_" + condition.predicate
                 conditions = [new_base_condition, condition]
+                relevant_vars = set(new_base_condition.args + condition.args)
+                for sc in static_conditions:
+                    if set(sc.args) & relevant_vars:
+                        conditions.append(sc)
+                        relevant_vars.update(set(sc.args))
                 rules.add(Rule(conditions, head))
         self.rules = rules
 

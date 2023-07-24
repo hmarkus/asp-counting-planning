@@ -65,7 +65,6 @@ if __name__ == '__main__':
                 relevant_model += 1
                 proper_name = i.replace("relevant_", "")
                 print(proper_name, file=output)
-                print(proper_name, file=sys.stderr)
         if process.returncode == 0:
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
