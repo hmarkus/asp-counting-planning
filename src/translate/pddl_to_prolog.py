@@ -152,7 +152,6 @@ class PrologProgram:
     def relevance_analysis_atoms(self):
         rules = set()
         for r in self.rules:
-            rules.add(r)
             if r.effect.predicate == "@goal-reachable":
                 for condition in r.conditions:
                     relevant_goal_atom = copy.deepcopy(condition)
@@ -331,10 +330,16 @@ def translate(task):
     # Using block=True because normalization can output some messages
     # in rare cases.
     prog.normalize()
+    if not options.remove_action_predicates and options.relevance_analysis:
+        print("ERROR: Relevance analysis does not work in "
+              "programs with action predicates.", file=sys.stderr)
+        sys.exit(-1)
     if options.remove_action_predicates:
         prog.remove_action_predicates()
         if options.relevance_analysis:  # replace with option to perform relevance analysis
             prog.relevance_analysis_atoms()
+            prog.dump_sanitized()
+            sys.exit()
     if options.only_output_direct_program:
         prog.dump_sanitized()
         sys.exit()
