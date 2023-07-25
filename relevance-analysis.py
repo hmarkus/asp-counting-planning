@@ -22,6 +22,8 @@ def parse_arguments():
     parser.add_argument('--domain', default=None, help="(Optional) The path to the problem domain file. If none is "
                                                        "provided, the system will try to automatically deduce "
                                                        "it from the instance filename.")
+    parser.add_argument('--lpopt-preprocessor', action='store_true', help="Use lpopt to preprocess rules.")
+
     args = parser.parse_args()
     if args.domain is None:
         args.domain = find_domain_filename(args.instance)
@@ -49,6 +51,16 @@ if __name__ == '__main__':
     print("ASP model being copied to %s" % theory_output)
 
 
+    if args.lpopt_preprocessor:
+        lpopt = find_lpopt()
+        temporary_filename = str(uuid.uuid4())
+        command = [lpopt, "-f", theory_output]
+        temp_file = open(temporary_filename, "w+t")
+        execute(command, stdout=temporary_filename)
+        os.rename(temporary_filename, theory_output)
+
+
+    # Fix gringo for now. IDLV might be better if tuned properly.
     grounder = select_grounder('gringo')
     extra_options=['--output', 'text']
 
