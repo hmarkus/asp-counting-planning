@@ -173,10 +173,11 @@ class PrologProgram:
                 head.predicate = "relevant_" + condition.predicate
                 conditions = [new_base_condition, condition]
                 relevant_vars = set(new_base_condition.args + condition.args)
-                for sc in static_conditions:
-                    if set(sc.args) & relevant_vars:
-                        conditions.append(sc)
-                        relevant_vars.update(set(sc.args))
+                for c in r.conditions:
+                    if c == condition: continue
+                    if set(c.args) & relevant_vars:
+                        conditions.append(c)
+                        relevant_vars.update(set(c.args))
                 rules.add(Rule(conditions, head))
         self.rules = rules
 
