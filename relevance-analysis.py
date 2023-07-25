@@ -22,6 +22,7 @@ def parse_arguments():
     parser.add_argument('--domain', default=None, help="(Optional) The path to the problem domain file. If none is "
                                                        "provided, the system will try to automatically deduce "
                                                        "it from the instance filename.")
+    parser.add_argument('-m', '--model-input', default='output.model', help="Input model file.")
     parser.add_argument('--lpopt-preprocessor', action='store_true', help="Use lpopt to preprocess rules.")
 
     args = parser.parse_args()
@@ -42,7 +43,7 @@ if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     theory_output = "relevance-analysis.theory"
-    original_model = "output.model"
+    original_model = args.model_input
     model_output = "output-relevant.model"
     command=[dir_path+'/src/translate/pddl_to_prolog.py', domain_file,
              instance_file,

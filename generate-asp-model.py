@@ -97,12 +97,16 @@ if __name__ == '__main__':
         command = [grounder, theory_output] + extra_options
         process = Popen(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, text=True)
         grounder_output = process.communicate()[0]
-        atoms = 0
+        atoms = -2 # starts with -2 because gringo outputs an empty line + goal reachable
         if not args.suppress_output:
             for i in grounder_output.split('\n'):
-                if not i.startswith("temp_decomp_"):
+                if not i.startswith("temp_decomp_") and not i.startswith("equals"):
                     atoms += 1
                     print(i, file=output)
+        if atoms <= 0:
+            print("Relaxed unsolvable task.")
+            print ("Gringo finished correctly: 0")
+            sys.exit(-1)
         if process.returncode == 0 or (use_clingo and process.returncode == 30):
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
