@@ -97,13 +97,18 @@ if __name__ == '__main__':
         command = [grounder, theory_output] + extra_options
         process = Popen(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, text=True)
         grounder_output = process.communicate()[0]
+        atoms = 0
         if not args.suppress_output:
-            print(grounder_output, file=output)
+            for i in grounder_output.split('\n'):
+                if not i.startswith("temp_decomp_"):
+                    atoms += 1
+                    print(i, file=output)
         if process.returncode == 0 or (use_clingo and process.returncode == 30):
             # For some reason, clingo returns 30 for correct exit
             print ("Gringo finished correctly: 1")
             print("Total time (in seconds): %0.5fs" % compute_time(start_time, use_clingo, args.model_output))
             print("Number of atoms (not actions):", len(grounder_output.split('\n')) - 1)
+            print("Number of atoms discarding temporary ones:", atoms)
             if args.grounder == 'newground':
                 with open(args.model_output, 'r') as model_file:
                     print(model_file.read())
