@@ -267,6 +267,8 @@ class Literal(Condition):
         return self.__class__(self.predicate, new_args)
     def free_variables(self):
         return {arg for arg in self.args if arg[0] == "?"}
+    def get_predicate(self):
+        return self.predicate
 
 class Atom(Literal):
     negated = False

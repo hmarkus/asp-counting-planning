@@ -51,6 +51,13 @@ if __name__ == '__main__':
     execute(command, stdout=theory_output)
     print("ASP model being copied to %s" % theory_output)
 
+    if os.path.isfile(theory_output) and os.path.getsize(theory_output) == 0:
+        print("Theory file is empty. "
+              "Relevance analysis is probably useless in this domain. "
+              "Skipping it...")
+        print("All facts are relevant: Copying original model into relevant one.")
+        shutil.copyfile(original_model, model_output)
+        sys.exit()
 
     if args.lpopt_preprocessor:
         lpopt = find_lpopt()

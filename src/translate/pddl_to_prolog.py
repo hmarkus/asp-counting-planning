@@ -154,6 +154,15 @@ class PrologProgram:
         for r in self.rules:
             intensional_predicates.add(r.effect.predicate)
 
+        for f in self.facts:
+            if f.get_predicate() == "@goal-reachable":
+                print("Goal is trivially reachable -- possibly only negated atoms. "
+                      "Skipping relevance analysis: everything is relevant.",
+                      file=sys.stderr)
+                self.facts = set()
+                self.rules = set()
+                return
+
         rules = set()
         for r in self.rules:
             if r.effect.predicate == "@goal-reachable":
@@ -278,6 +287,8 @@ class Fact:
         return "%s." % self.atom
     def _sanitize_output(self):
         return "%s." % self.atom._sanitize_output()
+    def get_predicate(self):
+        return self.atom.get_predicate()
 
 class Rule:
     def __init__(self, conditions, effect):
