@@ -9,6 +9,8 @@ import normalize
 import pddl
 import timers
 
+from collections import defaultdict
+
 class PrologProgram:
     def __init__(self):
         self.facts = []
@@ -122,12 +124,12 @@ class PrologProgram:
         '''
 
         non_action_rules = []
-        action_rules = dict()
+        action_rules = defaultdict(list)
         for r in self.rules:
             # Capture action rules and do not add them to the new set of rules
             rule_name = str(r.effect)
             if rule_name.startswith("action_"):
-                action_rules[rule_name] = r
+                action_rules[rule_name].append(r)
             else:
                 non_action_rules.append(r)
 
@@ -136,17 +138,52 @@ class PrologProgram:
             if len(r.conditions) == 1:
                 condition_name = str(r.conditions[0])
                 if condition_name in action_rules.keys():
-                    new_action_rule = copy.deepcopy(action_rules[condition_name])
-                    new_action_rule.effect = r.effect
-                    # TODO If we use lifted costs, this should be done before
-                    new_action_rule.weight = 1
-                    final_rules.append(new_action_rule)
+                    for rule in action_rules[condition_name]:
+                        new_action_rule = copy.deepcopy(rule)
+                        new_action_rule.effect = r.effect
+                        final_rules.append(new_action_rule)
                 else:
-                    # TODO If we use lifted costs, this should be done before
-                    r.weight = 0
+                    print("Not action rule (case 1): ", r, file=sys.stderr)
                     final_rules.append(r)
             else:
-                final_rules.append(r)
+                if r.effect.predicate != "@goal-reachable":
+                    # (Using terminology from the original translator paper.)
+                    # This "else" case is a bit problematic. Initially, we
+                    # thought that all rules with more than one condition would
+                    # be either the "goal rule" or "action applicability"
+                    # rules. In other words, all "effect rules" would have a
+                    # unary body. This is not true: in some cases the translator
+                    # adds some equality conditions to the body of the effect
+                    # rules.
+                    # We then need to remove the action predicates but be
+                    # careful to not loose this additional conditions.
+                    # The solution was to loop over all conditions, get all
+                    # "non-action predicate" conditions, and then, once creating
+                    # the new rules that combine effect and action applicability
+                    # ones, we insert these additional conditions back.
+                    permanent_conditions = []
+                    actions_in_condition = 0
+                    action = None
+                    for c in r.conditions:
+                        if str(c) not in action_rules.keys():
+                            permanent_conditions.append(c)
+                        else:
+                            actions_in_condition += 1
+                            action = str(c)
+                    # The next check is for <= 1 because it might happen that
+                    # some action predicates are treated as effects (e.g.,
+                    # actions without preconditions), so we do not care about these
+                    # rules either.
+                    assert actions_in_condition <= 1, "Rule %s has something weird." % r
+                    if actions_in_condition == 0:
+                        final_rules.append(r)
+                    for rule in action_rules[action]:
+                        new_action_rules = copy.deepcopy(rule)
+                        new_action_rule.effect = r.effect
+                        new_action_rule.conditions.extend(permanent_conditions)
+                        final_rules.append(new_action_rule)
+                else:
+                    final_rules.append(r)
         self.rules = final_rules
 
     def relevance_analysis_atoms(self):
@@ -179,7 +216,7 @@ class PrologProgram:
                     static_conditions.append(condition)
             for condition in r.conditions:
                 head = copy.deepcopy(condition)
-                head.predicate = "relevant_" + condition.predicate
+                head.predicate = "relevant_" + str(condition.predicate)
                 conditions = [new_base_condition, condition]
                 relevant_vars = set(new_base_condition.args + condition.args)
                 for c in r.conditions:
@@ -233,45 +270,19 @@ class PrologProgram:
             new_rules.add(rule)
         self.rules = list(new_rules)
 
-    def find_equivalent_rules(self, rules):
-        has_duplication = False
-        new_rules = []
-        remaining_equivalent_rules = dict()
-        equivalence = dict()
-        for rule in rules:
-            if "p$" in str(rule.effect):
-                '''Auxiliary variable'''
-                if (str(rule.conditions), str(rule.effect.args)) in remaining_equivalent_rules.keys():
-                    equivalence[str(rule.effect.predicate)] = remaining_equivalent_rules[(str(rule.conditions), str(rule.effect.args))]
-                    has_duplication = True
-                    #print("Removing {} because of {}".format(rule.effect.predicate, remaining_equivalent_rules[str(rule.conditions)]))
-                    continue
-                remaining_equivalent_rules[(str(rule.conditions), str(rule.effect.args))] = rule.effect.predicate
-            new_rules.append(rule)
-        return has_duplication, new_rules, equivalence
-
     def remove_duplicated_rules(self):
         '''
         Remove redundant and duplicated rules from the IDB of the Datalog
         '''
-        has_duplication = True
-        total_rules_removed = 0
-        while has_duplication:
-            number_removed = 0
-            final_rules = []
-            has_duplication, new_rules, equivalence = self.find_equivalent_rules(self.rules)
-            for rule in new_rules:
-                for i, c in enumerate(rule.conditions):
-                    pred_symb = str(c.predicate)
-                    if pred_symb in equivalence.keys():
-                        new_cond = c
-                        new_cond.predicate = equivalence[pred_symb]
-                        number_removed += 1
-                        rule.conditions[i] = new_cond
-                final_rules.append(rule)
-            total_rules_removed += number_removed
-            self.rules = final_rules
-        #print("Total number of duplicated rules removed: %d" % total_rules_removed, file=sys.stderr)
+
+        new_rules = set()
+        added_rules = set()
+
+        for rule in self.rules:
+            if rule._sanitize_output() not in added_rules:
+                added_rules.add(rule._sanitize_output())
+                new_rules.add(rule)
+        self.rules = new_rules
 
 
 def get_variables(symbolic_atoms):
@@ -361,10 +372,12 @@ def translate(task):
         sys.exit(-1)
     if options.remove_action_predicates:
         prog.remove_action_predicates()
-        if options.relevance_analysis:  # replace with option to perform relevance analysis
-            prog.relevance_analysis_atoms()
-            prog.dump_sanitized()
-            sys.exit()
+    #prog.rename_free_variables()
+    prog.remove_duplicated_rules()
+    if options.relevance_analysis:  # replace with option to perform relevance analysis
+        prog.relevance_analysis_atoms()
+        prog.dump_sanitized()
+        sys.exit()
     if options.only_output_direct_program:
         prog.dump_sanitized()
         sys.exit()
